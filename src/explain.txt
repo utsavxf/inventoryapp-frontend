@@ -1,0 +1,75 @@
+Key Concepts Recap
+
+
+Observables:
+
+
+
+Observables are used to handle asynchronous data streams.
+
+They are like event emitters that can emit multiple values over time.
+
+Subscribers can listen to these observables to receive updates when data changes.
+
+
+
+Subjects:
+
+
+
+Subjects are a type of observable that allows you to manually emit values.
+
+They can multicast, meaning they can send the same emitted values to multiple subscribers.
+
+When you call next() on a subject, it emits the value to all its subscribers.
+
+
+
+BehaviorSubject:
+
+
+
+A BehaviorSubject is a special type of subject that requires an initial value.
+
+It always holds the latest emitted value and emits that value to new subscribers immediately upon subscription.
+
+
+
+
+Why Use Subjects/BehaviorSubjects in Your Application?
+
+In your application, you want to manage the state of devices effectively. Here’s how using a BehaviorSubject helps:
+
+
+
+State Management:
+
+
+
+By using a BehaviorSubject in your DeviceService, you can maintain the current list of devices in one place. This allows you to easily update and retrieve the list of devices from anywhere in your application.
+
+
+
+Reactivity:
+
+
+
+When you fetch devices from the API, you can update the BehaviorSubject with the new list. Any component that subscribes to this BehaviorSubject will automatically receive the updated list of devices.
+
+This makes your application more reactive. For instance, if you add a new device, you can update the BehaviorSubject, and all components that are listening will immediately reflect this change without needing to manually refresh or re-fetch the data.
+
+
+
+Decoupling:
+
+
+
+By using a service to manage the devices, your components are decoupled from the data fetching logic. This means your components can focus on displaying data and handling user interactions, while the service handles data management.
+
+
+
+WHY THE HELL DO WE NEED device$
+
+Prevents External Emission: When you expose the BehaviorSubject directly, other parts of your application could potentially call next(), error(), or complete() on it, which could lead to unintended side effects.
+By exposing it as an Observable, you prevent external code from modifying the state directly.
+Only the service itself can emit new values.

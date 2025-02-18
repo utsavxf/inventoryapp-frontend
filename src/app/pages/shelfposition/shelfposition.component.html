@@ -1,0 +1,45 @@
+<div class="container mt-4">
+    <h2 class="mb-4 text-info">Shelf Positions</h2>
+    
+    <!-- Add Shelf Position Button -->
+    <button class="btn btn-info mb-4" (click)="toggleAddForm()">
+      <i class="fas fa-plus"></i> Add Shelf Position
+    </button>
+  
+    <!-- Add Shelf Position Form -->
+    <div *ngIf="showAddForm" class="card mb-4 bg-light">
+      <div class="card-body">
+        <h5 class="card-title text-info">Add New Shelf Position</h5>
+        <form (ngSubmit)="addShelfPosition()">
+          <div class="mb-3">
+            <label for="positionName" class="form-label">Position Name</label>
+            <input type="text" class="form-control" id="positionName" [(ngModel)]="newPosition.name" name="name" required>
+          </div>
+          <button type="submit" class="btn btn-info">Add Shelf Position</button>
+        </form>
+      </div>
+    </div>
+  
+    <!-- Shelf Positions List -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      <div class="col" *ngFor="let position of shelfPositions">
+        <div class="card h-100 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title text-info">{{ position.name }}</h5>
+            <p class="card-text" *ngIf="position.shelf">Shelf: {{ position.shelf.name }}</p>
+            <p class="card-text" *ngIf="position.device">Device: {{ position.device.name }}</p>
+          </div>
+          <div class="card-footer bg-transparent border-top-0">
+            <button class="btn btn-outline-info btn-sm me-2" (click)="editShelfPosition(position)">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-outline-danger btn-sm" (click)="deleteShelfPosition(position)">
+              <i class="fas fa-trash"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
