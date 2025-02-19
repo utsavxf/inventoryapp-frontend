@@ -34,6 +34,7 @@ export class ShelfService {
 
   getShelfById(id:number){
     return this.http.get<Shelf>(`${this.apiUrl}/${id}`)
+
   }
 
   updateShelf(shelf:Shelf){
@@ -52,7 +53,10 @@ export class ShelfService {
   }
 
   deleteShelf(shelfId:number){
-    return this.http.delete(`${this.apiUrl}/delete/${shelfId}`)
+    this.http.delete(`${this.apiUrl}/delete/${shelfId}`).subscribe(()=>{
+      const currentShelves=this.shelfSubject.value.filter((s)=>s.id!==shelfId)
+      this.shelfSubject.next([...currentShelves])
+    })
   }
 
 

@@ -45,7 +45,10 @@ export class ShelfpositionService {
   }
 
   deleteShelfPosition(shelfPositionId:number){
-    return this.http.delete(`${this.apiUrl}/delete/${shelfPositionId}`);
+    this.http.delete(`${this.apiUrl}/delete/${shelfPositionId}`).subscribe(()=>{
+      const currentShelfPositions=this.shelfPositionSubject.value.filter((sp)=>sp.id!==shelfPositionId)
+      this.shelfPositionSubject.next([...currentShelfPositions])
+    })
   }
 
 
