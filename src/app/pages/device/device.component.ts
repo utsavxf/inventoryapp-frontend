@@ -32,6 +32,8 @@ export class DeviceComponent {
   };
   selectedShelfPositionId = "";
   modalRef?: BsModalRef;  //as we have 2 modals so this will at a time contain the reference to either edit dialog or assign shelfPosition dialog
+  
+
 
   private modalService = inject(BsModalService);
   private deviceService=inject(DeviceService)
@@ -93,8 +95,7 @@ export class DeviceComponent {
     this.modalRef?.hide(); //the modal should hide after submitting the add shelfPosition request
   }
 
-  deleteDevice(device: any): void {
-    // Implement your delete logic
-    // this.deviceService.deleteDevice(device.id); // Assuming you have this method in your service
+  deleteDevice(device:Device){
+   this.deviceService.deleteDevice(Number(device.id))
   }
 }

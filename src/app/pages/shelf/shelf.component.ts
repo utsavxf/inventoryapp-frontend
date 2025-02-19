@@ -96,9 +96,7 @@ export class ShelfComponent {
   }
 
 
-  deleteShelf(shelf: any): void {
-    // Implement delete shelf logic
-  }
+ 
 
   assignShelfPosition(){
 
@@ -122,4 +120,11 @@ export class ShelfComponent {
    this.selectedShelfPositionId = ''; // Reset the selected shelf position ID
 
   }
+  
+  deleteShelf(shelf:Shelf){
+    this.shelfService.deleteShelf(Number(shelf.id)).subscribe(()=>{
+      this.shelves=this.shelves.filter(s=>s.id!==shelf.id)
+    })
+  }
+
 }

@@ -65,6 +65,17 @@ export class DeviceService {
     // fetch(url,{method:'POST'}).then(response=>response.text()).then(data=>console.log(data)).catch(error=>console.log(error));
   }
 
+  
+
+  //this is one way of deleting but we will not be using this in other entities as it fetches all devices after deleting 1 device
+  //in other approach we will locally update the change
+  deleteDevice(deviceId:number){ 
+     this.http.delete(`${this.apiUrl}/delete/${deviceId}`).subscribe(()=>{
+      //ok so in the backend device is already deleted but we have to update it
+       const currentDevices=this.devicesSubject.value.filter(d=>d.id!==deviceId);
+       this.devicesSubject.next([...currentDevices])
+     })
+  }
 
 
  

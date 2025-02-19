@@ -51,5 +51,9 @@ export class ShelfService {
    return this.http.post(`${this.apiUrl}/${shelfId}/addShelfPosition/${shelfPositionId}`,{})
   }
 
+  deleteShelf(shelfId:number){
+    return this.http.delete(`${this.apiUrl}/delete/${shelfId}`)
+  }
+
 
 }

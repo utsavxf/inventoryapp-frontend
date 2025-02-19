@@ -115,7 +115,10 @@ export class ShelfpositionComponent {
 
   }
 
-  deleteShelfPosition(position: any): void {
-    // Implement delete shelf position logic
+  deleteShelfPosition(shelfPosition:Shelfposition){
+    this.shelfPositionService.deleteShelfPosition(Number(shelfPosition.id)).subscribe(()=>{
+      this.shelfPositions=this.shelfPositions.filter((sp)=>sp.id!==shelfPosition.id)
+    })
   }
+
 }
