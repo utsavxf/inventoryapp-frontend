@@ -16,7 +16,7 @@ export class ShelfService {
   shelfSubject=new BehaviorSubject<Shelf[]>([]);
   shelves$=this.shelfSubject.asObservable();
 
-  fetchShelves(){
+  fetchAllShelves(){
     this.http.get<Shelf[]>(this.apiUrl+'/getAllShelves')
     .subscribe((shelves)=>{
       this.shelfSubject.next(shelves)
@@ -32,6 +32,24 @@ export class ShelfService {
     })
   }
 
+  getShelfById(id:number){
+    return this.http.get<Shelf>(`${this.apiUrl}/${id}`)
+  }
+
+  updateShelf(shelf:Shelf){
+    this.http.put<Shelf>(`${this.apiUrl}/update/${shelf.id}`,shelf).subscribe((shelf)=>{
+      const currentShelfs=this.shelfSubject.value
+      const index=currentShelfs.findIndex(s=>s.id===shelf.id)
+      if(index!==-1){
+        currentShelfs[index]=shelf
+        this.shelfSubject.next([...currentShelfs])
+      }
+    })
+  } 
+
+  addShelfPosition(shelfId:number,shelfPositionId:number){
+   return this.http.post(`${this.apiUrl}/${shelfId}/addShelfPosition/${shelfPositionId}`,{})
+  }
 
 
 }

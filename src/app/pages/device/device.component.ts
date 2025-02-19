@@ -1,105 +1,100 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, inject, TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DeviceService } from '../../services/device/device.service';
 import { Device } from '../../../interface/device';
-
+import { RouterLink } from '@angular/router';
+import { BsModalService, BsModalRef, ModalModule } from "ngx-bootstrap/modal";
+import { ShelfpositionService } from '../../services/shelfposition/shelfposition.service';
 
 @Component({
   selector: 'app-device',
-  standalone:true,
-  imports: [FormsModule,CommonModule],
+  standalone: true,
+  imports: [FormsModule, CommonModule, RouterLink,ModalModule],
+  providers:[BsModalService],
   templateUrl: './device.component.html',
   styleUrls: ['./device.component.scss']
 })
 export class DeviceComponent {
-  devices:Device[] = []
-  newDevice:Device = {
+  devices: Device[] = [];
+  newDevice: Device = {
     name: '',
     type: ''
-  }
-  showAddForm = false
+  };
+  showAddForm = false;
+  editingDevice:Device = { //updating device
+    name:'',
+    type:''
+  };
+  assigningDevice: Device = { //when assigning a shelf position
+    name:'',
+    type:''
+  };
+  selectedShelfPositionId = "";
+  modalRef?: BsModalRef;  //as we have 2 modals so this will at a time contain the reference to either edit dialog or assign shelfPosition dialog
 
+  private modalService = inject(BsModalService);
+  private deviceService=inject(DeviceService)
+  private shelfPositionService=inject(ShelfpositionService)
 
-  constructor(private deviceService:DeviceService) {}
+  constructor() {}
 
   ngOnInit(): void {
-     // Populate devices with dummy data
-    //  this.devices = [
-    //   {
-    //     name: 'iPhone 15',
-    //     type: 'Mobile',
-    //     shelfPositions: [
-    //       { name: 'Position 1' },
-    //       { name: 'Position 2' }
-    //     ]
-    //   },
-    //   {
-    //     name: 'MacBook Pro',
-    //     type: 'Laptop',
-    //     shelfPositions: [
-    //       { name: 'Position 3' }
-    //     ]
-    //   },
-    //   {
-    //     name: 'Samsung Galaxy S23',
-    //     type: 'Mobile',
-    //     shelfPositions: [
-          
-    //     ]
-    //   },
-    //   {
-    //     name: 'Dell XPS 13',
-    //     type: 'Laptop',
-    //     shelfPositions: [
-    //       { name: 'Position 4' }
-    //     ]
-    //   },
-    //   {
-    //     name: 'iPad Pro',
-    //     type: 'Tablet',
-    //     shelfPositions: [
-    //     ]
-    //   },
-    //   {
-    //     name: 'Google Pixel 7',
-    //     type: 'Mobile',
-    //     shelfPositions: [
-    //       { name: 'Position 6' }
-    //     ]
-    //   }
-    // ];
-    //I want to populate the devices with all the devices
-
-    this.fetchDevicesFromService(); //call kardia ab backend par vo next me devices ki list dega jisko hum ab local variable me store kar lenge
-    this.deviceService.devices$.subscribe((devices)=>{
-      this.devices=devices
-    })
+    this.fetchDevicesFromService();
+    this.deviceService.devices$.subscribe((devices) => {
+      this.devices = devices;
+    });
   }
 
-  fetchDevicesFromService(){
-    this.deviceService.fetchDevices();
+  fetchDevicesFromService() {
+    this.deviceService.fetchAllDevices();
   }
 
   toggleAddForm(): void {
-    this.showAddForm = !this.showAddForm
+    this.showAddForm = !this.showAddForm;
   }
 
   addDevice(): void {
     this.deviceService.addDevice(this.newDevice);
-    //clearing the form after adding the device
-    this.newDevice={name:'',type:''}; //we could also have a seperate function but we would optimize later along with form validations
+    this.newDevice = { name: '', type: '' };
   }
 
-  editDevice(device: any): void {
-    // Implement edit device logic
+  openEditDialog(device:Device, template: TemplateRef<any>): void {
+    this.editingDevice = { ...device };
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  updateDevice(): void {
+    
+    this.deviceService.updateDevice(this.editingDevice)
+    this.modalRef?.hide(); //the modal should hide after submitting the update request
+  }
+
+  //The ngOnInit method is not called again when the observable emits a new value. This method is only called once when the component is initialized.
+ //Instead, the template is updated with the new data automatically. Angular's change detection handles this efficiently, and the UI reflects the changes without needing to reinitialize the component or call ngOnInit again.
+
+  openAssignShelfPositionDialog(device: any, template: TemplateRef<any>): void {
+    this.assigningDevice = device;
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
+  }
+
+  assignShelfPosition(){
+    this.shelfPositionService.getShelfPositionById(Number(this.selectedShelfPositionId)).subscribe((shelfPosition)=>{
+      this.deviceService.addShelfPosition(Number(this.assigningDevice.id),Number(shelfPosition.id)).subscribe(()=>{
+        const updateDevice={...this.assigningDevice}
+        const index=this.devices.findIndex(d=>d.id===updateDevice.id)
+        if(index!==-1){
+          this.devices[index].shelfPositions?.push(shelfPosition)
+        }
+
+      })
+    })
+    this.selectedShelfPositionId=''
+    this.modalRef?.hide(); //the modal should hide after submitting the add shelfPosition request
   }
 
   deleteDevice(device: any): void {
-    // Implement delete device logic
-  }
-
-  assignToShelf(device: any): void {
-    // Implement assign to shelf logic
+    // Implement your delete logic
+    // this.deviceService.deleteDevice(device.id); // Assuming you have this method in your service
   }
 }

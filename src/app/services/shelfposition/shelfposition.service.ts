@@ -14,7 +14,7 @@ export class ShelfpositionService {
    shelfPositions$=this.shelfPositionSubject.asObservable();
 
 
-  fetchShelfPositions(){
+  fetchAllShelfPositions(){
     this.http.get<Shelfposition[]>(this.apiUrl+'/getAllShelfPositions')
     .subscribe((shelfpositions)=>{
       this.shelfPositionSubject.next(shelfpositions)
@@ -28,6 +28,23 @@ export class ShelfpositionService {
       this.shelfPositionSubject.next([...currentShelfPositions,newShelfPosition])
     })
   }
+
+  getShelfPositionById(id:number){
+    return this.http.get<Shelfposition>(`${this.apiUrl}/${id}`)
+  }
+
+  updateShelfPosition(shelPosition:Shelfposition){
+    this.http.put<Shelfposition>(`${this.apiUrl}/update/${shelPosition.id}`,shelPosition).subscribe((shelPosition)=>{
+      const currentShelfPositions=this.shelfPositionSubject.value
+      const targetIndex=currentShelfPositions.findIndex(sp=>sp.id===shelPosition.id)
+      if(targetIndex!==-1){
+        currentShelfPositions[targetIndex]=shelPosition
+        this.shelfPositionSubject.next([...currentShelfPositions])
+      }
+    })
+  }
+
+
 
 
 }

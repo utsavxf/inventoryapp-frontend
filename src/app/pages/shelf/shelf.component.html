@@ -1,57 +1,95 @@
 <div class="container mt-4">
-    <h2 class="mb-4 text-success">Shelves</h2>
-    
-    <!-- Add Shelf Button -->
-    <button class="btn btn-success mb-4" (click)="toggleAddForm()">
-      <i class="fas fa-plus"></i> Add Shelf
-    </button>
+  <h2 class="mb-4 text-success">Shelves</h2>
   
-    <!-- Add Shelf Form -->
-    <div *ngIf="showAddForm" class="card mb-4 bg-light">
-      <div class="card-body">
-        <h5 class="card-title text-success">Add New Shelf</h5>
-        <form (ngSubmit)="addShelf()">
-          <div class="mb-3">
-            <label for="shelfName" class="form-label">Shelf Name</label>
-            <input type="text" class="form-control" [(ngModel)]="newShelf.name" id="shelfName" name="name" required>
-          </div>
-          <div class="mb-3">
-            <label for="shelfCapacity" class="form-label">Shelf Type</label>
-            <input type="text" class="form-control" [(ngModel)]="newShelf.type" id="shelfCapacity" name="capacity" required>
-          </div>
-          <button type="submit" class="btn btn-success">Add Shelf</button>
-        </form>
-      </div>
+  <!-- Add Shelf Button -->
+  <button class="btn btn-success mb-4" (click)="toggleAddForm()">
+    <i class="fas fa-plus"></i> Add Shelf
+  </button>
+
+  <!-- Add Shelf Form -->
+  <div *ngIf="showAddForm" class="card mb-4 bg-light">
+    <div class="card-body">
+      <h5 class="card-title text-success">Add New Shelf</h5>
+      <form (ngSubmit)="addShelf()">
+        <div class="mb-3">
+          <label for="shelfName" class="form-label">Shelf Name</label>
+          <input type="text" class="form-control" [(ngModel)]="newShelf.name" id="shelfName" name="name" required>
+        </div>
+        <div class="mb-3">
+          <label for="shelfType" class="form-label">Shelf Type</label>
+          <input type="text" class="form-control" [(ngModel)]="newShelf.type" id="shelfType" name="type" required>
+        </div>
+        <button type="submit" class="btn btn-success">Add Shelf</button>
+      </form>
     </div>
-  
-    <!-- Shelves List -->
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        <div class="col" *ngFor="let shelf of shelves">
-          <div class="card h-100 shadow-sm">
-            <div class="card-body">
-              <h5 class="card-title text-success">{{ shelf.name }}</h5>
-              <p class="card-text">Type: {{ shelf.type }}</p>
-              <h6 class="mt-3 mb-2 text-muted">Assigned Shelf Position:</h6>
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item">
-                  {{shelf.shelfPosition}}
-                </li>
-              </ul> 
-            </div>
-            <div class="card-footer bg-transparent border-top-0">
-                <button class="btn btn-outline-success btn-sm me-1" (click)="editShelf(shelf)">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-                <button class="btn btn-outline-danger btn-sm me-1" (click)="deleteShelf(shelf)">
-                    <i class="fas fa-trash"></i> Delete
-                </button>
-                <button class="btn btn-outline-info btn-sm me-1" (click)="assignShelfPosition(shelf)">
-                  <i class="fas fa-archive"></i> Assign ShelfPosition
-                </button>
-            </div>
-          </div>
+  </div>
+
+  <!-- Shelves List -->
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="col" *ngFor="let shelf of shelves">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body"  [routerLink]="['/shelf', shelf.id]" style="cursor: pointer;">
+          <h5 class="card-title text-success">{{ shelf.name }}</h5>
+          <p class="card-text">Type: {{ shelf.type }}</p>
+          <h6 class="mt-3 mb-2 text-muted">Assigned Shelf Position:</h6>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">{{ shelf.shelfPosition?.name }}</li>
+          </ul>
+        </div>
+        <div class="card-footer bg-transparent border-top-0">
+          <button class="btn btn-outline-success btn-sm me-1" (click)="openEditShelfDialog(shelf, editShelfTemplate)">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-outline-danger btn-sm me-1" (click)="deleteShelf(shelf)">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+          <button class="btn btn-outline-info btn-sm me-1" (click)="openAssignShelfPositionDialog(shelf, assignShelfPositionTemplate)">
+            <i class="fas fa-archive"></i> Assign Shelf Position
+          </button>
         </div>
       </div>
+    </div>
   </div>
-  
-  
+
+  <!-- Edit Shelf Modal -->
+  <ng-template #editShelfTemplate>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">Edit Shelf</h4>
+      <button type="button" class="btn-close pull-right" aria-label="Close" (click)="modalRef?.hide()"></button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="updateShelf()">
+        <div class="mb-3">
+          <label for="editShelfName" class="form-label">Shelf Name</label>
+          <input type="text" class="form-control" id="editShelfName" [(ngModel)]="editingShelf.name" name="name" required>
+        </div>
+        <div class="mb-3">
+          <label for="editShelfType" class="form-label">Shelf Type</label>
+          <input type="text" class="form-control" id="editShelfType" [(ngModel)]="editingShelf.type" name="type" required>
+        </div>
+        <button type="submit" class="btn btn-info">Update Shelf</button>
+      </form>
+    </div>
+  </ng-template>
+
+  <!-- Assign Shelf Position Modal -->
+  <ng-template #assignShelfPositionTemplate>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">Assign Shelf Position</h4>
+      <button type="button" class="btn-close pull-right" aria-label="Close" (click)="modalRef?.hide()"></button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="assignShelfPosition()">
+        <div class="mb-3">
+          <label for="shelfId" class="form-label">Shelf ID</label>
+          <input type="text" class="form-control" id="shelfId" name="device" [value]="assigningShelf.id" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="shelfPositionId" class="form-label">Shelf Position ID</label>
+          <input type="text" class="form-control" id="shelfPositionId" [(ngModel)]="selectedShelfPositionId" name="shelfPositionId" required>
+        </div>
+        <button type="submit" class="btn btn-info">Assign Shelf Position</button>
+      </form>
+    </div>
+  </ng-template>
+</div>

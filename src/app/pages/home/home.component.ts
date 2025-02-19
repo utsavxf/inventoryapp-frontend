@@ -20,16 +20,16 @@ export class HomeComponent {
   private shelfPositionService=inject(ShelfpositionService)
   
  ngOnInit(){
-  this.deviceService.fetchDevices()
+  this.deviceService.fetchAllDevices()
   this.deviceService.devices$.subscribe((devices)=>{
     this.totalDevices=devices.length
   })
-  this.shelfService.fetchShelves()
+  this.shelfService.fetchAllShelves()
   this.shelfService.shelves$.subscribe((shelves)=>{
     this.totalShelves=shelves.length
   })
 
-  this.shelfPositionService.fetchShelfPositions()
+  this.shelfPositionService.fetchAllShelfPositions()
   this.shelfPositionService.shelfPositions$.subscribe((shelfpositions)=>{
     this.totalShelfPositions=shelfpositions.length
   })

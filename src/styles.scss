@@ -72,3 +72,100 @@ footer {
   box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
 }
 
+.device-detail-container {
+  background: linear-gradient(to right, rgba(173, 216, 230, 0.8), rgba(255, 182, 193, 0.8), rgba(144, 238, 144, 0.8));
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.shelf-detail-container {
+  background: linear-gradient(to right, rgba(173, 216, 230, 0.8), rgba(255, 182, 193, 0.8), rgba(144, 238, 144, 0.8));
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.shelf-position-detail-container {
+  background: linear-gradient(to right, rgba(173, 216, 230, 0.8), rgba(255, 182, 193, 0.8), rgba(144, 238, 144, 0.8));
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+.detail-card {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  max-width: 500px;
+  width: 100%;
+  transition: transform 0.3s ease-in-out;
+}
+
+.detail-card:hover {
+  transform: translateY(-5px);
+}
+
+.detail-card .card-title {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.detail-card .card-text {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+}
+
+.detail-card .list-group {
+  margin-top: 1.5rem;
+}
+
+.detail-card .list-group-item {
+  background-color: rgba(255, 255, 255, 0.7);
+  border: none;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.detail-card .btn {
+  font-size: 1.1rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.modal-content {
+  border-radius: 1rem;
+}
+
+.modal-header {
+  background-color: var(--primary-color);
+  color: white;
+  border-top-left-radius: 1rem;
+  border-top-right-radius: 1rem;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.form-label {
+  font-weight: 600;
+}
+
+.form-control,
+.form-select {
+  border-radius: 0.5rem;
+}

@@ -1,13 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, NgModule } from '@angular/core';
+import { Component, inject, NgModule, TemplateRef } from '@angular/core';
 import { FormsModule, NgModel } from '@angular/forms';
 import { Shelfposition } from '../../../interface/shelfposition';
 import { ShelfpositionService } from '../../services/shelfposition/shelfposition.service';
+import { RouterLink } from '@angular/router';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap/modal';
 
 @Component({
   selector: 'app-shelfposition',
   standalone:true,
-  imports: [FormsModule,CommonModule],
+  imports: [FormsModule,CommonModule,RouterLink],
+  providers:[BsModalService],
   templateUrl: './shelfposition.component.html',
   styleUrl: './shelfposition.component.scss'
 })
@@ -17,7 +20,10 @@ export class ShelfpositionComponent {
     'name':''
   }
   showAddForm = false
+  editingShelfPosition:Shelfposition= { name: '' }; // Object for editing
+  modalRef?:BsModalRef
 
+  private modalService=inject(BsModalService)//injecting modal service
   private shelfPositionService=inject(ShelfpositionService)
 
   constructor() {}
@@ -83,7 +89,7 @@ export class ShelfpositionComponent {
   }
 
   fetchAllShelfPositions() {
-    this.shelfPositionService.fetchShelfPositions()
+    this.shelfPositionService.fetchAllShelfPositions()
   }
 
   toggleAddForm(): void {
@@ -98,8 +104,15 @@ export class ShelfpositionComponent {
 
   }
 
-  editShelfPosition(position: any): void {
-    // Implement edit shelf position logic
+  openEditShelfPositionDialog(position:Shelfposition, template: TemplateRef<any>): void {
+    this.editingShelfPosition = { ...position }; // Copy the position to edit
+    this.modalRef = this.modalService.show(template, { class: 'modal-lg' }); // Show the modal
+  }
+
+  updateShelfPosition(): void {
+    this.shelfPositionService.updateShelfPosition(this.editingShelfPosition)
+    this.modalRef?.hide(); //the modal should hide after submitting the update request
+
   }
 
   deleteShelfPosition(position: any): void {

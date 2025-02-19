@@ -1,0 +1,19 @@
+container {
+    margin-top: 20px;
+  }
+  
+  .card {
+    transition: transform 0.2s;
+  }
+  
+  .card:hover {
+    transform: scale(1.02);
+  }
+  
+  .modal-header {
+    background-color: #f8f9fa;
+  }
+  
+  .modal-title {
+    color: #007bff 
+  }

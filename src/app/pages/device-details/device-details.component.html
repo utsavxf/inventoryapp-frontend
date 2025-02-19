@@ -1,0 +1,99 @@
+<div class="device-detail-container">
+    <div class="card detail-card">
+      <div class="card-body">
+        <h2 class="card-title text-primary">{{ device.name }}</h2>
+        <p class="card-text"><strong>Type:</strong> {{ device.type }}</p>
+        <p class="card-text"><strong>ID:</strong> {{ device.id }}</p>
+        <h5 class="mt-4 mb-2">Assigned Shelf Positions:</h5>
+        <ul class="list-group">
+          <li class="list-group-item" *ngFor="let position of device.shelfPositions">
+            {{ position.name }}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  
+  <!--  
+  LATER
+  -->
+
+  <!-- <div class="device-detail-container">
+    <div class="card detail-card">
+      <div class="card-body">
+        <h2 class="card-title text-primary">{{ device.name }}</h2>
+        <p class="card-text"><strong>Type:</strong> {{ device.type }}</p>
+        <p class="card-text"><strong>ID:</strong> {{ device.id }}</p>
+        <p class="card-text" *ngIf="device.shelf"><strong>Assigned Shelf:</strong> {{ device.shelf.name }}</p>
+        <h5 class="mt-4 mb-2">Assigned Shelf Positions:</h5>
+        <ul class="list-group">
+          <li class="list-group-item" *ngFor="let position of device.shelfPositions">
+            {{ position.name }}
+          </li>
+        </ul>
+        <div class="mt-4">
+          <button class="btn btn-primary me-2" (click)="openEditDialog(device)">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-danger me-2" (click)="deleteDevice(device)">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+          <button class="btn btn-success" (click)="openAssignShelfPositionDialog(device)">
+            <i class="fas fa-plus"></i> Assign Shelf Position
+          </button>
+        </div>
+      </div>
+    </div>
+  </div> -->
+  
+  <!-- Edit Device Dialog -->
+  <!-- <ng-template #editDeviceDialog>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">Edit Device</h4>
+      <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef.hide()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="updateDevice()">
+        <div class="mb-3">
+          <label for="editDeviceName" class="form-label">Device Name</label>
+          <input type="text" class="form-control" id="editDeviceName" [(ngModel)]="editingDevice.name" name="name" required>
+        </div>
+        <div class="mb-3">
+          <label for="editDeviceType" class="form-label">Device Type</label>
+          <input type="text" class="form-control" id="editDeviceType" [(ngModel)]="editingDevice.type" name="type" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Device</button>
+      </form>
+    </div>
+  </ng-template> -->
+  
+  <!-- Assign Shelf Position Dialog -->
+  <!-- <ng-template #assignShelfPositionDialog>
+    <div class="modal-header">
+      <h4 class="modal-title pull-left">Assign Shelf Position</h4>
+      <button type="button" class="btn-close close pull-right" aria-label="Close" (click)="modalRef.hide()">
+        <span aria-hidden="true" class="visually-hidden">&times;</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form (ngSubmit)="assignShelfPosition()">
+        <div class="mb-3">
+          <label for="deviceId" class="form-label">Device ID</label>
+          <input type="text" class="form-control" id="deviceId" [value]="device.id" readonly>
+        </div>
+        <div class="mb-3">
+          <label for="shelfPositionId" class="form-label">Shelf Position ID</label>
+          <select class="form-select" id="shelfPositionId" [(ngModel)]="selectedShelfPositionId" name="shelfPositionId" required>
+            <option value="">Select a Shelf Position</option>
+            <option *ngFor="let position of availableShelfPositions" [value]="position.id">{{ position.name }}</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success">Assign Shelf Position</button>
+      </form>
+    </div>
+  </ng-template>
+   -->
+  

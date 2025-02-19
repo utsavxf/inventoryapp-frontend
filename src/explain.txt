@@ -73,3 +73,9 @@ WHY THE HELL DO WE NEED device$
 Prevents External Emission: When you expose the BehaviorSubject directly, other parts of your application could potentially call next(), error(), or complete() on it, which could lead to unintended side effects.
 By exposing it as an Observable, you prevent external code from modifying the state directly.
 Only the service itself can emit new values.
+
+Why are we using Behaviour Subject when fetching all devcies and simply a function which returns an observable when we want to fetch a particular device
+
+In many applications, you will end up using both patterns: BehaviorSubject for lists or shared state and simple observables for one-off data retrievals.
+It all depends on your specific needs and the architecture of your application.
+If you find that you don't need to share the list of devices or react to changes, you can simplify your service by just returning an observable for fetching devices.
