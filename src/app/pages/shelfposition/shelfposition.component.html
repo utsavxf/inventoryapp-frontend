@@ -1,21 +1,21 @@
 <div class="container mt-4">
-  <h2 class="mb-4 text-info">Shelf Positions</h2>
+  <h2 class="mb-4 text-warning">Shelf Positions</h2> <!-- Changed text-info to text-warning -->
   
   <!-- Add Shelf Position Button -->
-  <button class="btn btn-info mb-4" (click)="toggleAddForm()">
+  <button class="btn btn-warning mb-4" (click)="toggleAddForm()"> <!-- Changed btn-info to btn-warning -->
     <i class="fas fa-plus"></i> Add Shelf Position
   </button>
 
   <!-- Add Shelf Position Form -->
   <div *ngIf="showAddForm" class="card mb-4 bg-light">
     <div class="card-body">
-      <h5 class="card-title text-info">Add New Shelf Position</h5>
+      <h5 class="card-title text-warning">Add New Shelf Position</h5> <!-- Changed text-info to text-warning -->
       <form (ngSubmit)="addShelfPosition()">
         <div class="mb-3">
           <label for="positionName" class="form-label">Position Name</label>
           <input type="text" class="form-control" id="positionName" [(ngModel)]="newPosition.name" name="name" required>
         </div>
-        <button type="submit" class="btn btn-info">Add Shelf Position</button>
+        <button type="submit" class="btn btn-warning">Add Shelf Position</button> <!-- Changed btn-info to btn-warning -->
       </form>
     </div>
   </div>
@@ -25,12 +25,12 @@
     <div class="col" *ngFor="let position of shelfPositions">
       <div class="card h-100 shadow-sm">
         <div class="card-body" [routerLink]="['/shelfposition', position.id]" style="cursor: pointer;">
-          <h5 class="card-title text-info">{{ position.name }}</h5>
+          <h5 class="card-title text-warning">{{ position.name }}</h5> <!-- Changed text-info to text-warning -->
           <p class="card-text">Shelf: {{ position.shelf?.name }}</p>
           <p class="card-text">Device: {{ position.device?.name }}</p>
         </div>
         <div class="card-footer bg-transparent border-top-0">
-          <button class="btn btn-outline-info btn-sm me-2" (click)="openEditShelfPositionDialog(position, editShelfPositionTemplate)">
+          <button class="btn btn-outline-warning btn-sm me-2" (click)="openEditShelfPositionDialog(position, editShelfPositionTemplate)"> <!-- Changed btn-outline-info to btn-outline-warning -->
             <i class="fas fa-edit"></i> Edit
           </button>
           <button class="btn btn-outline-danger btn-sm" (click)="deleteShelfPosition(position)">
@@ -42,19 +42,20 @@
   </div>
 
   <!-- Edit Shelf Position Modal -->
-  <ng-template #editShelfPositionTemplate>
-    <div class="modal-header">
-      <h4 class="modal-title pull-left">Edit Shelf Position</h4>
-      <button type="button" class="btn-close pull-right" aria-label="Close" (click)="modalRef?.hide()"></button>
-    </div>
-    <div class="modal-body">
-      <form (ngSubmit)="updateShelfPosition()">
-        <div class="mb-3">
-          <label for="editPositionName" class="form-label">Position Name</label>
-          <input type="text" class="form-control" id="editPositionName" [(ngModel)]="editingShelfPosition.name" name="name" required>
-        </div>
-        <button type="submit" class="btn btn-info">Update Shelf Position</button>
-      </form>
-    </div>
+  <!-- Edit Shelf Position Modal -->
+<ng-template #editShelfPositionTemplate>
+  <div class="modal-header">
+  <h4 class="modal-title pull-left">Edit Shelf Position</h4>
+  <button type="button" class="btn-close pull-right" aria-label="Close" (click)="modalRef?.hide()"></button>
+  </div>
+  <div class="modal-body">
+  <form (ngSubmit)="updateShelfPosition()">
+  <div class="mb-3">
+  <label for="editPositionName" class="form-label">Position Name</label>
+  <input type="text" class="form-control" id="editPositionName" [(ngModel)]="editingShelfPosition.name" name="name" required>
+  </div>
+  <button type="submit" class="btn btn-info">Update Shelf Position</button>
+  </form>
+  </div>
   </ng-template>
 </div>
