@@ -1,0 +1,29 @@
+
+QUESTIONS:
+WHETHER TO KEEP THE REFERENCE OF THE ENTITY OR THE ID
+
+
+FIRST HOW TO AVOID MULTIPLE HTTP REQUEST AND DO STATE MANAGEMENT
+->Rxjs Library,observables,behaviour subjects
+
+CIRCULAR LOOP IN JSON (DEVICE AND SHELF POSITIONS)
+->used the annotation JsonIdentityInfo
+
+IN HOME PAGE REQUESTS BEING MADE AGAIN AND AGAIN WHEN WE NAVIGATE BACK TO IT AND WHEN WE GO FROM HOME TO DEVICE THE FETCH ALL DEVICES SHOULD NOT BE CALLED AGAIN,BUT WHEN WE ARE ON DEVICE PAGE AND WE REFRESHES IT SHOULD BE CALLED
+->why does it happens: When you navigate away from a component and then back to it, Angular destroys the previous instance of the component and creates a new one, which leads to ngOnInit being called again.
+
+->in the service we can use an additional variable to see if all device/shelves/shelfPositions are fetched or not and use basic if-else logic
+
+BEHAVIOUR SUBJECT AND OBSERVABLES AS  SINGLE SOURCE OF TRUTH
+->SUBJECT OR BEHAVIOUR SUBJECT IS A SPECIAL TYPE OF OBSERVABLE THAT ACTS AS BOTH OBSERVER AND OBSERVABLE
+
+->it listens to the http requests and acts as observer and emits to all other components hence acts as observable
+and we also have a device$ which solely acts as an observable which other components can subscribe to hence next() method can't be called on it to avoid problems that might occur later
+
+TO CONCLUDE->deviceSubject act as both observer(listener) as it has to listen to http requests and update the devices and also as observer(emitter) as it has to notify other components of the updates
+             and device$ is the observable we create to which other components can subscribe to 
+
+
+CIRCULAR DEPEDENCY ERROR AS DEVICE SERVICE IN SHELF POSITION SERVICE AND VICE AND VERSA
+->used Injectors to lazily fetch the services
+

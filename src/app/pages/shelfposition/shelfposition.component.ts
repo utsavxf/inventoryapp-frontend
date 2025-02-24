@@ -31,7 +31,7 @@ export class ShelfpositionComponent {
   constructor() {}
 
   ngOnInit(): void {
-    this.fetchAllShelfPositions()
+    this.fetchAllShelfPositions() 
 
     this.shelfPositionService.shelfPositions$.subscribe((shelfpositions) => {
       this.shelfPositions = shelfpositions

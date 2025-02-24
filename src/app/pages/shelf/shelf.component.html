@@ -1,3 +1,5 @@
+
+
 <div class="container mt-4">
   <h2 class="mb-4 text-success">Shelves</h2>
   
@@ -36,34 +38,34 @@
   </div>
 
   <!-- Shelves List -->
-<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-  <div class="col" *ngFor="let shelf of shelves">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body" [routerLink]="['/shelf', shelf.id]" style="cursor: pointer;">
-        <h5 class="card-title text-success">{{ shelf.name }}</h5>
-        <p class="card-text">Type: {{ shelf.type }}</p>
-        <h6 class="mt-3 mb-2 text-muted">Assigned Shelf Position:</h6>
-        <ul class="list-group list-group-flush ">
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ shelf.shelfPosition?.name }}
-            @if(shelf.shelfPosition){<i class="fas fa-trash text-danger" (click)="deleteShelf(shelf)" style="cursor: pointer;"></i>}
-          </li>
-        </ul>
-      </div>
-      <div class="card-footer bg-transparent border-top-0">
-        <button class="btn btn-outline-success btn-sm me-1" (click)="openEditShelfDialog(shelf, editShelfTemplate)">
-          <i class="fas fa-edit"></i> Edit
-        </button>
-        <button class="btn btn-outline-danger btn-sm me-1" (click)="deleteShelf(shelf)">
-          <i class="fas fa-trash"></i> Delete
-        </button>
-        <button class="btn btn-outline-info btn-sm me-1" (click)="openAssignShelfPositionDialog(shelf, assignShelfPositionTemplate)">
-          <i class="fas fa-archive"></i> Assign Shelf Position
-        </button>
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="col" *ngFor="let shelf of shelves">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body" [routerLink]="['/shelf', shelf.id]" style="cursor: pointer;">
+          <h5 class="card-title text-success">{{ shelf.name }}</h5>
+          <p class="card-text">Type: {{ shelf.type }}</p>
+          <h6 class="mt-3 mb-2 text-muted">Assigned Shelf Position:</h6>
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              {{ shelf.shelfPosition?.name }}
+              <i *ngIf="shelf.shelfPosition" class="fas fa-trash text-danger" (click)="deleteShelf(shelf)" style="cursor: pointer;"></i>
+            </li>
+          </ul>
+        </div>
+        <div class="card-footer bg-transparent border-top-0">
+          <button class="btn btn-outline-success btn-sm me-1" (click)="openEditShelfDialog(shelf, editShelfTemplate)">
+            <i class="fas fa-edit"></i> Edit
+          </button>
+          <button class="btn btn-outline-danger btn-sm me-1" (click)="deleteShelf(shelf)">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+          <button class="btn btn-outline-info btn-sm me-1" (click)="openAssignShelfPositionDialog(shelf, assignShelfPositionTemplate)">
+            <i class="fas fa-archive"></i> Assign Shelf Position
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- Edit Shelf Modal -->
   <ng-template #editShelfTemplate>
@@ -102,16 +104,21 @@
       <form (ngSubmit)="assignShelfPosition()" #assignShelfPositionForm="ngForm">
         <div class="mb-3">
           <label for="shelfId" class="form-label">Shelf ID</label>
-          <input type="text" class="form-control" id="shelfId" name="device" [value]="assigningShelf.id" readonly>
+          <input type="text" class="form-control" id="shelfId" name="shelf" [value]="assigningShelf.id" readonly>
         </div>
+        @if(!assigningShelf.shelfPosition){
         <div class="mb-3">
-          <label for="shelfPositionId" class="form-label">Shelf Position ID</label>
-          <input type="text" class="form-control" id="shelfPositionId" [(ngModel)]="selectedShelfPositionId" name="shelfPositionId" required #shelfPositionId="ngModel">
-          <div *ngIf="shelfPositionId.invalid && (shelfPositionId.dirty || shelfPositionId.touched)" class="text-danger">
-            Shelf Position ID is required.
+          <label for="shelfPositionId" class="form-label">Shelf Position</label>
+          <select class="form-control" id="shelfPositionId" [(ngModel)]="selectedShelfPositionId" name="shelfPositionId" required>
+            <option value="" disabled>Click to Select a Shelf Position</option>
+            <option *ngFor="let position of availableShelfPositions" [value]="position.id">{{ position.name }}</option>
+          </select>
+          <div *ngIf="!selectedShelfPositionId && (assignShelfPositionForm.submitted || assignShelfPositionForm.touched)" class="text-danger">
+            Shelf Position is required.
           </div>
         </div>
         <button type="submit" class="btn btn-info" [disabled]="!assignShelfPositionForm.form.valid">Assign Shelf Position</button>
+      }
       </form>
     </div>
   </ng-template>

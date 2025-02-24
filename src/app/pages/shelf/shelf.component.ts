@@ -1,12 +1,13 @@
 
 import { CommonModule } from "@angular/common"
-import { Component, inject, type TemplateRef } from "@angular/core"
+import { Component, inject, Injector, type TemplateRef } from "@angular/core"
 import { FormsModule } from "@angular/forms"
 import { ShelfService } from "../../services/shelf/shelf.service"
 import type { Shelf } from "../../../interface/shelf"
 import { RouterLink } from "@angular/router"
 import { type BsModalRef, BsModalService, ModalModule } from "ngx-bootstrap/modal"
 import { ShelfpositionService } from "../../services/shelfposition/shelfposition.service"
+import { Shelfposition } from "../../../interface/shelfposition"
 
 @Component({
   selector: "app-shelf",
@@ -27,8 +28,11 @@ export class ShelfComponent {
   selectedShelfPositionId = ""
   modalRef?: BsModalRef
   alertMessage: string | null = null
-  alertType: "success" | "error" = "success"
+  alertType: "success" | "error" = "success" 
 
+  shelfPositions:Shelfposition[]=[]
+  availableShelfPositions:Shelfposition[]=[]
+   
   private shelfService = inject(ShelfService)
   private shelfPositionService = inject(ShelfpositionService)
   modalService = inject(BsModalService)
@@ -36,10 +40,19 @@ export class ShelfComponent {
   constructor() {}
 
   ngOnInit(): void {
-    this.fetchAllShelves()
+    this.fetchAllShelves() 
     this.shelfService.shelves$.subscribe((shelves) => {
       this.shelves = shelves
     })
+
+    this.shelfPositionService.fetchAllShelfPositions();
+
+    this.shelfPositionService.shelfPositionSubject.subscribe((shelfPositions)=>{
+       this.shelfPositions=shelfPositions
+       this.availableShelfPositions=shelfPositions.filter((sp)=>!sp.shelf)
+    })
+
+
   }
 
   toggleAddForm(): void {
@@ -60,7 +73,7 @@ export class ShelfComponent {
       this.showAlert("Shelf added successfully", "success")
       this.showAddForm = false
     }
-    // this.showAlert("please fill out all fields","error")
+
   }
 
   openEditShelfDialog(shelf: Shelf, template: TemplateRef<any>): void {
@@ -84,22 +97,10 @@ export class ShelfComponent {
 
   assignShelfPosition() {
     if (this.selectedShelfPositionId) {
-      this.shelfPositionService
-        .getShelfPositionById(Number(this.selectedShelfPositionId))
-        .subscribe((shelfPosition) => {
-          this.shelfService.addShelfPosition(Number(this.assigningShelf.id), Number(shelfPosition.id)).subscribe(() => {
-            const updatedShelf = { ...this.assigningShelf }
-            updatedShelf.shelfPosition = shelfPosition
-            const index = this.shelves.findIndex((s) => s.id === updatedShelf.id)
-            if (index !== -1) {
-              this.shelves[index] = updatedShelf
-            }
-            this.showAlert("Shelf position assigned successfully", "success")
-          })
-        })
-      this.modalRef?.hide()
-      this.selectedShelfPositionId = ""
+      console.log("assigning shelf position in component")
+      this.shelfService.addShelfPosition(Number(this.assigningShelf.id),Number(this.selectedShelfPositionId))
     }
+    this.modalRef?.hide()
   }
 
   deleteShelf(shelf: Shelf) {

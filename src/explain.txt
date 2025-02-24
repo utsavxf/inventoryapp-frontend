@@ -79,3 +79,9 @@ Why are we using Behaviour Subject when fetching all devcies and simply a functi
 In many applications, you will end up using both patterns: BehaviorSubject for lists or shared state and simple observables for one-off data retrievals.
 It all depends on your specific needs and the architecture of your application.
 If you find that you don't need to share the list of devices or react to changes, you can simplify your service by just returning an observable for fetching devices.
+
+
+FUTURE
+->enable proper error handling mechanisms specially after the HTTP request
+->create loading states with behaviour subject (refer to the article https://dev.to/chintanonweb/understanding-subject-and-behavior-subjects-in-angular-46e5)
+->signals,pipes and directives

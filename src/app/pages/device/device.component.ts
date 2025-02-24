@@ -52,12 +52,15 @@ export class DeviceComponent {
     })
 
     //let's fetch all shelfPositions too from the Service
+    this.shelfPositionService.fetchAllShelfPositions() //again this will only be called when if we are refreshing device pages and shelfPosition subject doesn't have all shelf position
+    
     this.shelfPositionService.shelfPositions$.subscribe((shelfPositions)=>{
       this.shelfPositions=shelfPositions
+    //after fetching all let's get available shelfPositions,and this should be inside subscribe
+    this.availableShelfPositions=this.shelfPositions.filter((sp)=>!sp.device)
     })
 
-    //after fetching all let's get available shelfPositions
-    this.availableShelfPositions=this.shelfPositions.filter((sp)=>!sp.device)
+    
   }
 
   fetchDevicesFromService() {
@@ -95,32 +98,14 @@ export class DeviceComponent {
     this.assigningDevice = device
     this.modalRef = this.modalService.show(template, { class: "modal-lg" })
   }
-
+  
   assignShelfPosition() {
     if (this.selectedShelfPositionId) {
-      this.shelfPositionService.getShelfPositionById(Number(this.selectedShelfPositionId)).subscribe(
-        (shelfPosition) => {
-          this.deviceService.addShelfPosition(Number(this.assigningDevice.id), Number(shelfPosition.id)).subscribe(
-            () => {
-              const updatedDevice = { ...this.assigningDevice }
-              const index = this.devices.findIndex((d) => d.id === updatedDevice.id)
-              if (index !== -1) {
-                this.devices[index].shelfPositions?.push(shelfPosition)
-              }
-              this.showAlert("Shelf position assigned successfully", "success")
-              this.selectedShelfPositionId = ""
-              this.modalRef?.hide()
-            },
-            (error) => {
-              this.showAlert("Error assigning shelf position", "error")
-            },
-          )
-        },
-        (error) => {
-          this.showAlert("Error fetching shelf position", "error")
-        },
-      )
+      console.log("assigning shelf position in component")
+      this.deviceService.addShelfPosition(Number(this.assigningDevice.id),Number(this.selectedShelfPositionId))
+      this.selectedShelfPositionId=""
     }
+    this.modalRef?.hide()
   }
 
   confirmDeleteDevice(device: Device) {
