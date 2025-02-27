@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, Injector } from '@angular/core';
-import { BehaviorSubject, catchError, Observable } from 'rxjs';
+import { BehaviorSubject, catchError, Observable, throwError } from 'rxjs';
 import { Device } from '../../../interface/device';
 import { ShelfpositionService } from '../shelfposition/shelfposition.service';
 
@@ -34,6 +34,7 @@ export class DeviceService {
   fetchAllDevices(){
     if(this.deviceFetched)return //no need to fetch again,prevents extra api call
     this.http.get<Device[]>(this.apiUrl+'/getAllDevices') //now this http request itself returns observable so deviceSubject here acts as consumer to subscribe to this observable and updates itself with data
+    .pipe(catchError(this.handleError))
     .subscribe((devices)=>{
       this.devicesSubject.next(devices); //this line serves 2 purpose :updating the deviceSubject with and notifying subscribers/other components ,so that all the components that subscribed to devices$ gets the updated list instantly
       this.deviceFetched=true
@@ -41,7 +42,10 @@ export class DeviceService {
   }
 
   addDevice(device:Device){
-    this.http.post<Device>(this.apiUrl+'/save',device).subscribe((newDevice)=>{ 
+    this.http.post<Device>(this.apiUrl+'/save',device).pipe(
+      catchError(this.handleError)
+    ).
+    subscribe((newDevice)=>{ 
       //get the current list,add the new device and emit updated list
       const currentDevices=this.devicesSubject.value;
       this.devicesSubject.next([...currentDevices,newDevice])
@@ -54,7 +58,9 @@ export class DeviceService {
   }
 
   updateDevice(device:Device){
-    this.http.put<Device>(`${this.apiUrl}/update/${device.id}`,device).subscribe((device)=>{
+    this.http.put<Device>(`${this.apiUrl}/update/${device.id}`,device).pipe(
+      catchError(this.handleError)
+    ).subscribe((device)=>{
       //ok so now particular device has been updated and we've been given the new device,now we want to update our behaviour subject
       const currentDevices=this.devicesSubject.value
       const deviceIndex=currentDevices.findIndex(d=>d.id===device.id)
@@ -75,7 +81,10 @@ export class DeviceService {
     const shelfPositions=this.shelfPositionService.shelfPositionSubject.value
     const targetShelfPosition = shelfPositions.find((sp)=>sp.id===shelfPositionId)
       if(targetShelfPosition){ //when using find operation,there is always a probability that what if the respective entity was not found
-      this.http.post(`${this.apiUrl}/${deviceId}/addShelfPosition/${shelfPositionId}`,{}).subscribe(()=>{
+      this.http.post(`${this.apiUrl}/${deviceId}/addShelfPosition/${shelfPositionId}`,{}).pipe(
+        catchError(this.handleError)
+      ).
+      subscribe(()=>{
        const currentDevices=this.devicesSubject.value
        const deviceIndex=currentDevices.findIndex((d)=>d.id===deviceId)
        currentDevices[deviceIndex].shelfPositions?.push(targetShelfPosition) //updating the currentDevice
@@ -116,7 +125,9 @@ export class DeviceService {
 }
 
  removeShelfPosition(deviceId:number,shelfPositionId:number){
-   this.http.delete(`${this.apiUrl}/${deviceId}/removeShelfPosition/${shelfPositionId}`).subscribe(()=>{
+   this.http.delete(`${this.apiUrl}/${deviceId}/removeShelfPosition/${shelfPositionId}`).pipe(
+    catchError(this.handleError)
+   ).subscribe(()=>{
     //do changes to device and emit to all other subscribers
     const allDevices=this.devicesSubject.value
     const targetDevice=allDevices.find((d)=>d.id===deviceId)
@@ -133,6 +144,11 @@ export class DeviceService {
  }
 
 
+  // Error handling method
+  private handleError(error: any): Observable<never> {
+    console.error('An error occurred:', error); // Log the error to the console
+    return throwError(() => new Error('Something went wrong; please try again later.')); // Return an observable with a user-facing error message
+  }
  
 
 

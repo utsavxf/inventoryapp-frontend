@@ -5,6 +5,7 @@ import type { Shelfposition } from "../../../interface/shelfposition"
 import { ShelfpositionService } from "../../services/shelfposition/shelfposition.service"
 import { RouterLink } from "@angular/router"
 import { type BsModalRef, BsModalService } from "ngx-bootstrap/modal"
+import { ToastService } from "../../services/toast/toast.service"
 
 @Component({
   selector: "app-shelfposition",
@@ -26,6 +27,7 @@ export class ShelfpositionComponent {
   alertType: "success" | "error" = "success"
 
   private modalService = inject(BsModalService)
+  private toastService=inject(ToastService)
   private shelfPositionService = inject(ShelfpositionService)
 
   constructor() {}
@@ -78,11 +80,12 @@ export class ShelfpositionComponent {
   }
 
   showAlert(message: string, type: "success" | "error") {
-    this.alertMessage = message
-    this.alertType = type
-    setTimeout(() => {
-      this.alertMessage = null
-    }, 3000)
+    // this.alertMessage = message
+    // this.alertType = type
+    // setTimeout(() => {
+    //   this.alertMessage = null
+    // }, 3000)
+    this.toastService.show(message,type)
   }
 }
 

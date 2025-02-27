@@ -8,11 +8,15 @@ import { RouterLink } from "@angular/router"
 import { BsModalService, type BsModalRef, ModalModule } from "ngx-bootstrap/modal"
 import { ShelfpositionService } from "../../services/shelfposition/shelfposition.service"
 import { Shelfposition } from "../../../interface/shelfposition"
+import { LoaderComponent } from "../../components/loader/loader.component";
+import { ToastComponent } from "../../components/toast/toast.component";
+import { LoaderService } from "../../services/loader/loader.service"
+import { ToastService } from "../../services/toast/toast.service"
 
 @Component({
   selector: "app-device",
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterLink, ModalModule],
+  imports: [FormsModule, CommonModule, RouterLink, ModalModule, LoaderComponent, ToastComponent],
   providers: [BsModalService],
   templateUrl: "./device.component.html",
   styleUrls: ["./device.component.scss"],
@@ -40,6 +44,10 @@ export class DeviceComponent {
   alertType: "success" | "error" = "success"
 
   private modalService = inject(BsModalService)
+  private loaderService=inject(LoaderService)
+  private toastService=inject(ToastService)
+
+
   private deviceService = inject(DeviceService)
   private shelfPositionService = inject(ShelfpositionService)
 
@@ -64,7 +72,9 @@ export class DeviceComponent {
   }
 
   fetchDevicesFromService() {
+    this.loaderService.show()
     this.deviceService.fetchAllDevices()
+    this.loaderService.hide()
   }
 
   toggleAddForm(): void {
@@ -72,10 +82,12 @@ export class DeviceComponent {
   }
 
   addDevice(): void {
+    this.loaderService.show()
     this.deviceService.addDevice(this.newDevice);
     this.showAlert("Device added successfully", "success")
     this.newDevice = { name: "", type: "" }
     this.showAddForm = false
+    this.loaderService.hide()
   }
 
 
@@ -103,6 +115,7 @@ export class DeviceComponent {
     if (this.selectedShelfPositionId) {
       this.deviceService.addShelfPosition(Number(this.assigningDevice.id),Number(this.selectedShelfPositionId))
       this.selectedShelfPositionId=""
+      this.showAlert("Shelf Position Assigned Successfully","success")
     }
     this.modalRef?.hide()
   }
@@ -127,11 +140,12 @@ export class DeviceComponent {
   }
 
   showAlert(message: string, type: "success" | "error") {
-    this.alertMessage = message
-    this.alertType = type
-    setTimeout(() => {
-      this.alertMessage = null
-    }, 3000) 
+    // this.alertMessage = message
+    // this.alertType = type
+    // setTimeout(() => {
+    //   this.alertMessage = null
+    // }, 3000) 
+    this.toastService.show(message,type)
   }
 }
 

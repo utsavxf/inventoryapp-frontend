@@ -8,6 +8,8 @@ import { RouterLink } from "@angular/router"
 import { type BsModalRef, BsModalService, ModalModule } from "ngx-bootstrap/modal"
 import { ShelfpositionService } from "../../services/shelfposition/shelfposition.service"
 import { Shelfposition } from "../../../interface/shelfposition"
+import { LoaderService } from "../../services/loader/loader.service"
+import { ToastService } from "../../services/toast/toast.service"
 
 @Component({
   selector: "app-shelf",
@@ -36,6 +38,7 @@ export class ShelfComponent {
   private shelfService = inject(ShelfService)
   private shelfPositionService = inject(ShelfpositionService)
   modalService = inject(BsModalService)
+  private toastService=inject(ToastService)
 
   constructor() {}
 
@@ -99,6 +102,7 @@ export class ShelfComponent {
     if (this.selectedShelfPositionId) {
       console.log("assigning shelf position in component")
       this.shelfService.addShelfPosition(Number(this.assigningShelf.id),Number(this.selectedShelfPositionId))
+      this.showAlert("Shelf Position assigned successfully","success")
     }
     this.modalRef?.hide()
   }
@@ -118,10 +122,11 @@ export class ShelfComponent {
   }
 
   showAlert(message: string, type: "success" | "error") {
-    this.alertMessage = message
-    this.alertType = type
-    setTimeout(() => {
-      this.alertMessage = null
-    }, 3000)
+    // this.alertMessage = message
+    // this.alertType = type
+    // setTimeout(() => {
+    //   this.alertMessage = null
+    // }, 3000)
+    this.toastService.show(message,type)
   }
 }
