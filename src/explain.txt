@@ -85,3 +85,4 @@ FUTURE
 ->enable proper error handling mechanisms specially after the HTTP request
 ->create loading states with behaviour subject (refer to the article https://dev.to/chintanonweb/understanding-subject-and-behavior-subjects-in-angular-46e5)
 ->signals,pipes and directives
+->constraints on name,and properties and all that

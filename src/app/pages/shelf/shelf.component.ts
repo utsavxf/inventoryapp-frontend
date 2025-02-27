@@ -110,6 +110,13 @@ export class ShelfComponent {
     }
   }
 
+
+  removeShelfPosition(event:MouseEvent,shelfId:any,shelfPositionId:any){
+    event.stopPropagation() //to stop triggering the router link
+    this.shelfService.removeShelfPosition(Number(shelfId),Number(shelfPositionId))
+    this.showAlert("Shelf Position removed successfully","success")
+  }
+
   showAlert(message: string, type: "success" | "error") {
     this.alertMessage = message
     this.alertType = type

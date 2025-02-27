@@ -104,5 +104,20 @@ export class ShelfService {
     })
   }
 
+  removeShelfPosition(shelfId:number,shelfPositionId:number){
+    this.http.delete(`${this.apiUrl}/${shelfId}/removeShelfPosition/${shelfPositionId}`).subscribe(()=>{
+      const allShelves=this.shelfSubject.value
+      const targetShelf=allShelves.find((s)=>s.id===shelfId)
+      if(targetShelf)targetShelf.shelfPosition=undefined
+      this.shelfSubject.next([...allShelves])
+
+      //do changes to shelfPosition and emit to all other subscibers
+      const allShelfPositions=this.shelfPositionService.shelfPositionSubject.value
+      const targetShelfPosition=allShelfPositions.find((sp)=>sp.id===shelfPositionId)
+      if(targetShelfPosition)targetShelfPosition.shelf=undefined
+      this.shelfPositionService.shelfPositionSubject.next([...allShelfPositions])
+    })
+  }
+
 
 }

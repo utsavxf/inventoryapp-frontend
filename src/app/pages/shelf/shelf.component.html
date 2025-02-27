@@ -48,7 +48,11 @@
           <ul class="list-group list-group-flush">
             <li class="list-group-item d-flex justify-content-between align-items-center">
               {{ shelf.shelfPosition?.name }}
-              <i *ngIf="shelf.shelfPosition" class="fas fa-trash text-danger" (click)="deleteShelf(shelf)" style="cursor: pointer;"></i>
+              @if(shelf.shelfPosition){
+              <button class="btn btn-outline-secondary btn-sm" (click)="removeShelfPosition($event,shelf.id,shelf.shelfPosition.id)">
+                <i class="fas fa-minus"></i> 
+              </button>
+            }
             </li>
           </ul>
         </div>

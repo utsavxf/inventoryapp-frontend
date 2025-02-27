@@ -54,6 +54,15 @@ footer {
   border-color: var(--info-color);
 }
 
+.btn-outline-secondary {
+  color: #6c757d; /* Change color to a softer shade */
+}
+
+.btn-outline-secondary:hover {
+  background-color: #e2e6ea; /* Light background on hover */
+  color: #495057; /* Darker text color on hover */
+}
+
 .text-primary {
   color: var(--primary-color) !important;
 }

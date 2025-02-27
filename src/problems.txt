@@ -27,3 +27,5 @@ TO CONCLUDE->deviceSubject act as both observer(listener) as it has to listen to
 CIRCULAR DEPEDENCY ERROR AS DEVICE SERVICE IN SHELF POSITION SERVICE AND VICE AND VERSA
 ->used Injectors to lazily fetch the services
 
+QUESTIONS? WHY NEO4J ONLY SHOWS NAME AND TYPE PROPERTIES AND NOT OTHERS
+

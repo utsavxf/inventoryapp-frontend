@@ -105,7 +105,7 @@ export class DeviceService {
             if (sp.device && sp.device.id === deviceId) {
                 sp.device = undefined; // or delete the device property, depending on your model
             }
-        });
+        }); 
 
         // Emit the updated shelf positions to the shelf position subject
         this.shelfPositionService.shelfPositionSubject.next([...shelfPositions]);
@@ -114,6 +114,23 @@ export class DeviceService {
         // Optionally handle the error (e.g., show a notification)
     });
 }
+
+ removeShelfPosition(deviceId:number,shelfPositionId:number){
+   this.http.delete(`${this.apiUrl}/${deviceId}/removeShelfPosition/${shelfPositionId}`).subscribe(()=>{
+    //do changes to device and emit to all other subscribers
+    const allDevices=this.devicesSubject.value
+    const targetDevice=allDevices.find((d)=>d.id===deviceId)
+    if(targetDevice)
+    targetDevice.shelfPositions=targetDevice?.shelfPositions?.filter((sp)=>sp.id!==shelfPositionId)
+    this.devicesSubject.next([...allDevices])
+
+    //do changes to shelfPosition and emit to all other subscibers
+    const allShelfPositions=this.shelfPositionService.shelfPositionSubject.value
+    const targetShelfPosition=allShelfPositions.find((sp)=>sp.id===shelfPositionId)
+    if(targetShelfPosition)targetShelfPosition.device=undefined
+    this.shelfPositionService.shelfPositionSubject.next([...allShelfPositions])
+   })
+ }
 
 
  

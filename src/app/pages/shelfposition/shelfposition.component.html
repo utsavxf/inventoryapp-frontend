@@ -35,8 +35,8 @@
       <div class="card h-100 shadow-sm">
         <div class="card-body" [routerLink]="['/shelfposition', position.id]" style="cursor: pointer;">
           <h5 class="card-title text-warning">{{ position.name }}</h5>
-          <p class="card-text">Shelf: {{ position.shelf?.name }}</p>
           <p class="card-text">Device: {{ position.device?.name }}</p>
+          <p class="card-text">Shelf: {{ position.shelf?.name }}</p>
         </div>
         <div class="card-footer bg-transparent border-top-0">
           <button class="btn btn-outline-warning btn-sm me-2" (click)="openEditShelfPositionDialog(position, editShelfPositionTemplate)">

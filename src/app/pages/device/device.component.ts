@@ -101,7 +101,6 @@ export class DeviceComponent {
   
   assignShelfPosition() {
     if (this.selectedShelfPositionId) {
-      console.log("assigning shelf position in component")
       this.deviceService.addShelfPosition(Number(this.assigningDevice.id),Number(this.selectedShelfPositionId))
       this.selectedShelfPositionId=""
     }
@@ -121,30 +120,18 @@ export class DeviceComponent {
 
   
 
-  // removeShelfPosition(event: Event, device: Device, position: any) {
-  //   event.stopPropagation()
-  //   if (confirm("Are you sure you want to remove this shelf position from the device?")) {
-  //     this.deviceService.removeShelfPosition(Number(device.id), Number(position.id)).subscribe(
-  //       () => {
-  //         const index = this.devices.findIndex((d) => d.id === device.id)
-  //         if (index !== -1) {
-  //           this.devices[index].shelfPositions = this.devices[index].shelfPositions?.filter((p) => p.id !== position.id)
-  //         }
-  //         this.showAlert("Shelf position removed successfully", "success")
-  //       },
-  //       (error) => {
-  //         this.showAlert("Error removing shelf position", "error")
-  //       },
-  //     )
-  //   }
-  // }
+  removeShelfPosition(event:MouseEvent,deviceId:any,ShelfpositionId:any){
+     event.stopPropagation() //to stop triggering the router link
+     this.deviceService.removeShelfPosition(Number(deviceId),Number(ShelfpositionId))
+     this.showAlert("Shelf Position removed successfully","success")
+  }
 
   showAlert(message: string, type: "success" | "error") {
     this.alertMessage = message
     this.alertType = type
     setTimeout(() => {
       this.alertMessage = null
-    }, 3000)
+    }, 3000) 
   }
 }
 
