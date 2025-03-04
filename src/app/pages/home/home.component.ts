@@ -25,7 +25,9 @@ export class HomeComponent {
   
  ngOnInit(){
   this.loaderSerivce.show()
-  this.deviceService.fetchAllDevices()
+  this.deviceService.fetchAllDevices().subscribe(()=>{
+    
+  })
   this.deviceService.devices$.subscribe((devices)=>{
     this.totalDevices=devices.length
   })
