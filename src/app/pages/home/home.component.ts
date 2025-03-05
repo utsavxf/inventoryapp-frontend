@@ -1,45 +1,73 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core'; // Added signal, computed
 import { RouterLink } from '@angular/router';
 import { DeviceService } from '../../services/device/device.service';
 import { ShelfService } from '../../services/shelf/shelf.service';
 import { ShelfpositionService } from '../../services/shelfposition/shelfposition.service';
 import { LoaderService } from '../../services/loader/loader.service';
+import { ToastService } from '../../services/toast/toast.service'; // Added ToastService
 import { LoaderComponent } from '../../components/loader/loader.component';
+import { ToastComponent } from '../../components/toast/toast.component'; // Added ToastComponent
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink,LoaderComponent],
+  standalone: true, // Assuming standalone like others
+  imports: [RouterLink, LoaderComponent, ToastComponent], // Added ToastComponent
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent {
-  totalDevices=0
-  totalShelves=0
-  totalShelfPositions=0
+  // Signals for totals (reactive state)
+  totalDevices = signal(0);
+  totalShelves = signal(0);
+  totalShelfPositions = signal(0);
 
+  // Inject services
+  private loaderService = inject(LoaderService); // Fixed typo from loaderSerivce
+  private deviceService = inject(DeviceService);
+  private shelfService = inject(ShelfService);
+  private shelfPositionService = inject(ShelfpositionService);
+  private toastService = inject(ToastService); // Added for error feedback
 
-  private loaderSerivce=inject(LoaderService)
-  private deviceService=inject(DeviceService)
-  private shelfService=inject(ShelfService)
-  private shelfPositionService=inject(ShelfpositionService)
-  
- ngOnInit(){
-  this.loaderSerivce.show()
-  this.deviceService.fetchAllDevices().subscribe(()=>{
-    
-  })
-  this.deviceService.devices$.subscribe((devices)=>{
-    this.totalDevices=devices.length
-  })
-  this.shelfService.fetchAllShelves()
-  this.shelfService.shelves$.subscribe((shelves)=>{
-    this.totalShelves=shelves.length
-  })
+  // Computed signals directly from service Signals (no subscriptions needed)
+  devicesCount = computed(() => this.deviceService.devices().length);
+  shelvesCount = computed(() => this.shelfService.shelves().length);
+  shelfPositionsCount = computed(() => this.shelfPositionService.shelfPositions().length);
 
-  this.shelfPositionService.fetchAllShelfPositions()
-  this.shelfPositionService.shelfPositions$.subscribe((shelfpositions)=>{
-    this.totalShelfPositions=shelfpositions.length
-  })
-  this.loaderSerivce.hide()
- } 
+  ngOnInit() {
+    this.loaderService.show(); // Show loader while fetching
+
+    // Fetch all data with error handling
+    this.deviceService.fetchAllDevices().subscribe({
+      next: () => {
+        this.loaderService.hide()
+        this.totalDevices.set(this.devicesCount()); // Update Signal with computed value
+      },
+      error: (err) => {
+        this.loaderService.hide(); // Hide loader on error
+        this.toastService.show(`Failed to fetch devices: ${err.message}`, 'error');
+      },
+    });
+
+    this.shelfService.fetchAllShelves().subscribe({
+      next: () => {
+        this.loaderService.hide()
+        this.totalShelves.set(this.shelvesCount()); // Update Signal with computed value
+      },
+      error: (err) => {
+        this.loaderService.hide(); // Hide loader on error
+        this.toastService.show(`Failed to fetch shelves: ${err.message}`, 'error');
+      },
+    });
+
+    this.shelfPositionService.fetchAllShelfPositions().subscribe({
+      next: () => {
+        this.loaderService.hide(); // Hide loader only after all fetches succeed
+        this.totalShelfPositions.set(this.shelfPositionsCount()); // Update Signal with computed value
+      },
+      error: (err) => {
+        this.loaderService.hide(); // Hide loader on error
+        this.toastService.show(`Failed to fetch shelf positions: ${err.message}`, 'error');
+      },
+    });
+  }
 }

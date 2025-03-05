@@ -25,12 +25,14 @@
 .toast-error {
   background-color: #f44336; /* Red background for error */
   color: white;
+  background-image: none; /* Explicitly set background image to none */
 }
 
 .toast-message {
   margin: 0;
   font-size: 14px;
   font-weight: 500;
+  padding: 0; /* Ensure no padding that could cause visual issues */
 }
 
 @keyframes slideIn {

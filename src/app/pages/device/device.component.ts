@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, type TemplateRef } from '@angular/core';
+import { Component, computed, inject, signal, type TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DeviceService } from '../../services/device/device.service';
 import type { Device } from '../../../interface/device';
@@ -33,56 +33,41 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrls: ['./device.component.scss'],
 })
 export class DeviceComponent {
-  devices: Device[] = [];
-  shelfPositions: Shelfposition[] = [];
-  availableShelfPositions: Shelfposition[] = [];
-  newDevice: Device = {
+  devices=inject(DeviceService).devices
+  shelfPositions=inject(ShelfpositionService).shelfPositions
+  availableShelfPositions=computed(()=>this.shelfPositions().filter((sp)=>!sp.device))
+  newDevice=signal<Device>({
     name: '',
     type: '',
-  };
-  showAddForm = false;
-  editingDevice: Device = {
+  })
+  showAddForm = signal(false);
+  editingDevice=signal<Device>({
     name: '',
     type: '',
-  };
-  assigningDevice: Device = {
+  })
+  assigningDevice=signal<Device>({
     name: '',
     type: '',
-  };
-  selectedShelfPositionId = '';
+  })
+  selectedShelfPositionId = signal('');
   modalRef?: BsModalRef;
-  alertMessage: string | null = null;
-  alertType: 'success' | 'error' = 'success';
 
+  //injecting various services
   private modalService = inject(BsModalService);
   private loaderService = inject(LoaderService);
   private toastService = inject(ToastService);
-
   private deviceService = inject(DeviceService);
   private shelfPositionService = inject(ShelfpositionService);
 
-  constructor() {
-    this.deviceService.devices$
-      .pipe(takeUntilDestroyed())
-      .subscribe((devices) => {
-        this.devices = devices;
-      });
-
-    this.shelfPositionService.shelfPositions$
-      .pipe(takeUntilDestroyed())
-      .subscribe((shelfPositions) => {
-        this.shelfPositions = shelfPositions;
-        //after fetching all let's get available shelfPositions,and this should be inside subscribe
-        this.availableShelfPositions = this.shelfPositions.filter(
-          (sp) => !sp.device
-        );
-      });
-  }
 
   ngOnInit(): void {
     this.fetchDevicesFromService();
     //let's fetch all shelfPositions too from the Service
-    this.shelfPositionService.fetchAllShelfPositions(); //again this will only be called when if we are refreshing device pages and shelfPosition subject doesn't have all shelf position
+    this.shelfPositionService.fetchAllShelfPositions() //again this will only be called when if we are refreshing device pages and shelfPosition subject doesn't have all shelf position
+    .subscribe({
+      next:()=>this.loaderService.hide(),
+      error:()=>this.toastService.show(`Failed to fetch all shelf positions`,"error")
+    })
   }
 
   fetchDevicesFromService() {
@@ -97,16 +82,16 @@ export class DeviceComponent {
   }
 
   toggleAddForm(): void {
-    this.showAddForm = !this.showAddForm;
+    this.showAddForm.update((val)=>!val)
   }
 
   addDevice(): void {
     this.loaderService.show();
-    this.deviceService.addDevice(this.newDevice).subscribe({
+    this.deviceService.addDevice(this.newDevice()).subscribe({
       next: () => {
         this.showAlert('Device added successfully', 'success');
-        this.newDevice = { name: '', type: '' };
-        this.showAddForm = false;
+        this.newDevice.set({ name: '', type: '' }) 
+        this.showAddForm.set(false)
         this.loaderService.hide();
       },
       error: (err) => {
@@ -117,13 +102,13 @@ export class DeviceComponent {
   }
 
   openEditDialog(device: Device, template: TemplateRef<any>): void {
-    this.editingDevice = { ...device };
+    this.editingDevice.set({...device});
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   updateDevice(): void {
     this.loaderService.show();
-    this.deviceService.updateDevice(this.editingDevice).subscribe({
+    this.deviceService.updateDevice(this.editingDevice()).subscribe({
       next: () => {
         this.showAlert('Device updated successfully', 'success');
         this.modalRef?.hide(); //the modal should hide after submitting the update request
@@ -137,20 +122,31 @@ export class DeviceComponent {
   }
 
   openAssignShelfPositionDialog(device: any, template: TemplateRef<any>): void {
-    this.assigningDevice = device;
+    this.assigningDevice.set({...device})
     this.modalRef = this.modalService.show(template, { class: 'modal-lg' });
   }
 
   assignShelfPosition() {
     if (this.selectedShelfPositionId) {
+      this.loaderService.show()
       this.deviceService.addShelfPosition(
-        Number(this.assigningDevice.id),
-        Number(this.selectedShelfPositionId)
-      );
-      this.selectedShelfPositionId = '';
-      this.showAlert('Shelf Position Assigned Successfully', 'success');
+        Number(this.assigningDevice().id),
+        Number(this.selectedShelfPositionId())
+      ).subscribe({
+        next:()=>{
+        this.loaderService.hide()   
+        this.modalRef?.hide();  
+        this.selectedShelfPositionId.set('')
+        this.showAlert('Shelf Position Assigned Successfully', 'success');
+        },
+        error:(err)=>{
+          this.loaderService.hide()
+          this.showAlert(`Failed in assigning shelf Position:${err.message}`,"error")
+        }
+      })
+      
     }
-    this.modalRef?.hide();
+    
   }
 
   confirmDeleteDevice(device: Device) {
@@ -160,12 +156,15 @@ export class DeviceComponent {
   }
 
   deleteDevice(device: Device) {
+    this.loaderService.show()
     this.deviceService.deleteDevice(Number(device.id)).subscribe({
       next:()=>{
         this.showAlert('Device deleted successfully', 'success');
+        this.loaderService.hide()
       },
       error:(err)=>{
         this.showAlert(`Failed to delete device :${err.message}`,"error")
+        this.loaderService.hide()
       }
     })
    
@@ -173,11 +172,21 @@ export class DeviceComponent {
 
   removeShelfPosition(event: MouseEvent, deviceId: any, ShelfpositionId: any) {
     event.stopPropagation(); //to stop triggering the router link
+    this.loaderService.show()
     this.deviceService.removeShelfPosition(
       Number(deviceId),
       Number(ShelfpositionId)
-    );
-    this.showAlert('Shelf Position removed successfully', 'success');
+    ).subscribe({
+      next:()=>{
+       this.showAlert('Shelf Position removed successfully', 'success');
+       this.loaderService.hide()
+      },
+      error:(err)=>{
+       this.showAlert(`Failed to remove shelf position:${err.message}`,"error")
+       this.loaderService.hide()
+      }
+    })
+    
   }
 
   showAlert(message: string, type: 'success' | 'error') {

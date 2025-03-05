@@ -1,123 +1,149 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, Injector } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { inject, Injectable, Injector, signal } from '@angular/core';
+import { Observable, catchError, throwError, tap, of } from 'rxjs';
 import { Shelf } from '../../../interface/shelf';
 import { ShelfpositionService } from '../shelfposition/shelfposition.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root' // App-wide service
 })
 export class ShelfService {
+  private apiUrl = 'http://localhost:8080/shelf'; // Base URL for shelf API
+  private shelvesFetched = false; // Flag to prevent duplicate fetches
 
-  private apiUrl='http://localhost:8080/shelf' //base url for shelves in our backend
-   
-  constructor(private http:HttpClient) { }
+  
+  shelfSignal = signal<Shelf[]>([]); //will hold all the list of shelves
+  shelves = this.shelfSignal.asReadonly();   //read only to be used in other places in the app
 
-  private shelvesFetched=false
-   
-  private injector=inject(Injector) 
-    
-   private get shelfPositionService():ShelfpositionService{
-      return this.injector.get(ShelfpositionService)
-    }
-
-  //let's make subject to hold all shelfs and observable as a read only to which other components can subscribe this behaviour subject
-  shelfSubject=new BehaviorSubject<Shelf[]>([]);
-  shelves$=this.shelfSubject.asObservable();
-
-  fetchAllShelves(){
-    if(this.shelvesFetched)return
-    this.http.get<Shelf[]>(this.apiUrl+'/getAllShelves')
-    .subscribe((shelves)=>{
-      this.shelfSubject.next(shelves)
-      this.shelvesFetched=true 
-    })
+  private injector = inject(Injector); //to prevent circular dependency
+  private get shelfPositionService(): ShelfpositionService {
+    return this.injector.get(ShelfpositionService);
   }
 
-  addShelf(shelf:Shelf){
-    this.http.post<Shelf>(this.apiUrl+'/save',shelf)
-    .subscribe((newShelf)=>{
-       //get the current list,add the new shelf and emit to all subscribers/listeners
-       const currentShelves=this.shelfSubject.value
-       this.shelfSubject.next([...currentShelves,newShelf])
-    })
+  constructor(private http: HttpClient) {} // Inject HttpClient
+
+  // Fetch all shelves from the backend
+  fetchAllShelves(): Observable<Shelf[]> {
+    if (this.shelvesFetched) return of(this.shelfSignal()) //if already fetched return the current shelves as an observable,this of operator creates as observable from current shelves 
+    return this.http.get<Shelf[]>(`${this.apiUrl}/getAllShelves`).pipe(
+      catchError(this.handleError), 
+      tap((shelves) => { 
+        this.shelfSignal.set(shelves); 
+        this.shelvesFetched = true; 
+      })
+    );
   }
 
-  getShelfById(id:number){
-    return this.http.get<Shelf>(`${this.apiUrl}/${id}`)
-
+  // Add a new shelf
+  addShelf(shelf: Shelf): Observable<Shelf> {
+    return this.http.post<Shelf>(`${this.apiUrl}/save`, shelf).pipe(
+      catchError(this.handleError), 
+      tap((newShelf) => { 
+        this.shelfSignal.update((current) => [...current, newShelf]); //update your signal which acts as single source of truth
+      })
+    );
   }
 
-  updateShelf(shelf:Shelf){
-    this.http.put<Shelf>(`${this.apiUrl}/update/${shelf.id}`,shelf).subscribe((shelf)=>{
-      const currentShelfs=this.shelfSubject.value
-      const index=currentShelfs.findIndex(s=>s.id===shelf.id)
-      if(index!==-1){
-        currentShelfs[index]=shelf
-        this.shelfSubject.next([...currentShelfs])
-      }
-    })
-  } 
+  getShelfById(id: number): Observable<Shelf> {
+    return this.http.get<Shelf>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError) 
+    );
+  }
 
-  addShelfPosition(shelfId: number, shelfPositionId: number) {
-    // Making the HTTP POST request to add a shelf position
-    this.http.post(`${this.apiUrl}/${shelfId}/addShelfPosition/${shelfPositionId}`, {}).subscribe(() => {
-      // Fetching all shelf positions
-      const allShelfPositions = this.shelfPositionService.shelfPositionSubject.value;
-      const targetShelfPosition = allShelfPositions.find((sp) => sp.id === shelfPositionId);
-  
-      if (targetShelfPosition) {
-        // Fetching all shelves
-        const allShelves = this.shelfSubject.value;
-        const targetShelf = allShelves.find((s) => s.id === shelfId);
-  
-        if (targetShelf) {
-          // Updating the shelf position and shelf references
-          targetShelfPosition.shelf = targetShelf; // Assigning targetShelf to shelf property of targetShelfPosition
-          targetShelf.shelfPosition = targetShelfPosition; // Assigning targetShelfPosition to shelfPosition property of targetShelf
-  
-          // Emit updated subjects to notify all subscribers
-          this.shelfSubject.next([...allShelves]);
-          this.shelfPositionService.shelfPositionSubject.next([...allShelfPositions]);
+  // Update an existing shelf
+  updateShelf(shelf: Shelf): Observable<Shelf> {
+    return this.http.put<Shelf>(`${this.apiUrl}/update/${shelf.id}`, shelf).pipe(
+      catchError(this.handleError), 
+      tap((updatedShelf) => { 
+        this.shelfSignal.update((current) =>
+          current.map((s) => (s.id === updatedShelf.id ? updatedShelf : s)) // Replace updated shelf
+        );
+      })
+    );
+  }
+
+  // Assign a shelf position to a shelf
+  addShelfPosition(shelfId: number, shelfPositionId: number): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/${shelfId}/addShelfPosition/${shelfPositionId}`, {}).pipe(
+      catchError(this.handleError), 
+      tap(() => { 
+        const allShelfPositions = this.shelfPositionService.shelfPositions(); 
+        const targetShelfPosition = allShelfPositions.find((sp) => sp.id === shelfPositionId); 
+        if (targetShelfPosition) {
+          const allShelves = this.shelfSignal(); // Get current shelves
+          const targetShelf = allShelves.find((s) => s.id === shelfId); // Find target shelf
+          if (targetShelf) {
+            targetShelfPosition.shelf = targetShelf; // Link shelf to position
+            targetShelf.shelfPosition = targetShelfPosition; // Link position to shelf
+            this.shelfSignal.set([...allShelves]); // Update Shelf Signal
+            this.shelfPositionService.shelfPositionsSignal.set([...allShelfPositions]); // Update Shelfposition Signal
+          }
         }
+      })
+    );
+  }
+
+  // Delete a shelf by ID
+  deleteShelf(shelfId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/delete/${shelfId}`).pipe(
+      catchError(this.handleError), 
+      tap(() => {
+        const targetShelf = this.shelfSignal().find((s) => s.id === shelfId);
+        this.shelfSignal.update((current) => current.filter((s) => s.id !== shelfId)); 
+
+        // Free up the shelf position if it exists
+        const allShelfPositions = this.shelfPositionService.shelfPositions();
+        const targetShelfPosition = allShelfPositions.find((sp) => sp.id === targetShelf?.shelfPosition?.id);
+        if (targetShelfPosition) {
+          targetShelfPosition.shelf = undefined; // Clear shelf reference
+          this.shelfPositionService.shelfPositionsSignal.set([...allShelfPositions]); // Update Signal
+        }
+      })
+    );
+  }
+
+  // Remove a shelf position from a shelf
+  removeShelfPosition(shelfId: number, shelfPositionId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${shelfId}/removeShelfPosition/${shelfPositionId}`).pipe(
+      catchError(this.handleError), // Handle DELETE errors
+      tap(() => { // On success
+        const allShelves = this.shelfSignal(); // Get current shelves
+        const targetShelf = allShelves.find((s) => s.id === shelfId); // Find target shelf
+        if (targetShelf) {
+          targetShelf.shelfPosition = undefined; // Clear position
+          this.shelfSignal.set([...allShelves]); // Update Signal
+        }
+
+        const allShelfPositions = this.shelfPositionService.shelfPositions(); // Get shelf positions
+        const targetShelfPosition = allShelfPositions.find((sp) => sp.id === shelfPositionId); // Find target position
+        if (targetShelfPosition) {
+          targetShelfPosition.shelf = undefined; // Clear shelf link
+          this.shelfPositionService.shelfPositionsSignal.set([...allShelfPositions]); // Update Signal
+        }
+      })
+    );
+  }
+
+  // Error handling function
+  private handleError(error: any): Observable<never> {
+    let errorMessage: string;
+    if (error.error instanceof ErrorEvent) { // Client-side error
+      errorMessage = `Network or client error: ${error.error.message}`;
+    } else if (error instanceof HttpErrorResponse) { // Server-side error
+      switch (error.status) {
+        case 0: errorMessage = 'No connection to the server. Check your internet.'; break;
+        case 400: errorMessage = `Bad request: ${error.error?.message || 'Invalid data.'}`; break;
+        case 401: errorMessage = 'Unauthorized: Please log in.'; break;
+        case 403: errorMessage = 'Forbidden: No permission.'; break;
+        case 404: errorMessage = `Not found: ${error.error?.message || 'Shelf missing.'}`; break;
+        case 500: errorMessage = 'Server error: Try again later.'; break;
+        default: errorMessage = `Server error: ${error.status} - ${error.statusText || 'Unknown.'}`;
       }
-    });
+    } else { // Fallback
+      errorMessage = 'Unexpected error. Try again.';
+    }
+    console.error('Error in ShelfService:', { message: errorMessage, originalError: error }); // Log error
+    return throwError(() => new Error(errorMessage)); // Throw formatted error
   }
-
-  deleteShelf(shelfId:number){
-    this.http.delete(`${this.apiUrl}/delete/${shelfId}`).subscribe(()=>{
-      const taregtShelf=this.shelfSubject.value.find((s)=>s.id===shelfId)
-      const currentShelves=this.shelfSubject.value.filter((s)=>s.id!==shelfId)
-      this.shelfSubject.next([...currentShelves])
-      
-
-      //also we have to free up that shelfPosition
-      const allShelfPositions=this.shelfPositionService.shelfPositionSubject.value
-      const targetShelfPosition=allShelfPositions.find((sp)=>sp.id===taregtShelf?.shelfPosition?.id)
-      if(targetShelfPosition){
-        targetShelfPosition.shelf=undefined
-      }
-      //and now have to notify it everywhere else
-      this.shelfPositionService.shelfPositionSubject.next([...allShelfPositions])
-
-
-    })
-  }
-
-  removeShelfPosition(shelfId:number,shelfPositionId:number){
-    this.http.delete(`${this.apiUrl}/${shelfId}/removeShelfPosition/${shelfPositionId}`).subscribe(()=>{
-      const allShelves=this.shelfSubject.value
-      const targetShelf=allShelves.find((s)=>s.id===shelfId)
-      if(targetShelf)targetShelf.shelfPosition=undefined
-      this.shelfSubject.next([...allShelves])
-
-      //do changes to shelfPosition and emit to all other subscibers
-      const allShelfPositions=this.shelfPositionService.shelfPositionSubject.value
-      const targetShelfPosition=allShelfPositions.find((sp)=>sp.id===shelfPositionId)
-      if(targetShelfPosition)targetShelfPosition.shelf=undefined
-      this.shelfPositionService.shelfPositionSubject.next([...allShelfPositions])
-    })
-  }
-
-
 }

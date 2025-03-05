@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { inject, Injectable, Injector } from '@angular/core';
-import { BehaviorSubject, catchError, Observable, tap, throwError } from 'rxjs';
+import { inject, Injectable, Injector, signal } from '@angular/core';
+import { BehaviorSubject, catchError, Observable, of, tap, throwError } from 'rxjs';
 import { Device } from '../../../interface/device';
 import { ShelfpositionService } from '../shelfposition/shelfposition.service';
 
@@ -10,32 +10,30 @@ import { ShelfpositionService } from '../shelfposition/shelfposition.service';
 export class DeviceService {
   private apiUrl = 'http://localhost:8080/device'; //base url for devices in our backend
 
-  private injector = inject(Injector); //to avoid circular dependency error
+  
 
   constructor(private http: HttpClient) {} //to send http request from our frontend to our backend
   private deviceFetched = false;
 
+  private injector = inject(Injector); //to avoid circular dependency error
   private get shelfPositionService(): ShelfpositionService {
     return this.injector.get(ShelfpositionService);
   }
-
-  //We can say that observables handles streams of async data like API responses,user inputs and act like event emitters,pushing data to whoever subscribes to them
-
-  /*deviceSubject holds all devices but device$ is just an observable that exposes the current value of deviceSubject
-  devices$ is just like a read only stream of the data so that components/observers can subscribe to it where we need it*/
-
-  devicesSubject = new BehaviorSubject<Device[]>([]); // BehaviorSubject to hold devices
-  devices$ = this.devicesSubject.asObservable(); // Observable to expose devices
+  
+  //Signal for devices
+  devicesSignal=signal<Device[]>([])
+  //Public read-only signal
+  devices=this.devicesSignal.asReadonly()
 
   //get all devices from the backend
   fetchAllDevices(): Observable<Device[]> {
-    if (this.deviceFetched) return this.devices$; //no need to fetch again,prevents extra api call
+    if (this.deviceFetched) return of(this.devices()) //return the already cached devices as an observable
     return this.http
       .get<Device[]>(this.apiUrl + '/getAllDevices') //now this http request itself returns observable so deviceSubject here acts as consumer to subscribe to this observable and updates itself with data
       .pipe(
         catchError(this.handleError),
         tap((devices) => {
-          this.devicesSubject.next(devices); //this line serves 2 purpose :updating the deviceSubject with and notifying subscribers/other components ,so that all the components that subscribed to devices$ gets the updated list instantly
+          this.devicesSignal.set(devices) //updating signal
           this.deviceFetched = true;
         })
       );
@@ -46,10 +44,8 @@ export class DeviceService {
     return this.http.post<Device>(this.apiUrl + '/save', device).pipe(
       catchError(this.handleError),
       tap((newDevice) => {
-        //get the current list,add the new device and emit updated list
-        const currentDevices = this.devicesSubject.value;
-        this.devicesSubject.next([...currentDevices, newDevice]);
-        //the above 2 line can be written outside the block also ,it will also give same results right? Suppose the above post request failed and on the backend we aren't able to add any new device but we still added locally in behaviour subject so that would be wrong that's why we do these changes in subsribe from the observable
+         //simply add the new device to the deviceSignal
+         this.devicesSignal.update((current)=>[...current,newDevice])
       })
     );
   }
@@ -65,111 +61,84 @@ export class DeviceService {
       .put<Device>(`${this.apiUrl}/update/${device.id}`, device)
       .pipe(
         catchError(this.handleError),
-        tap((device) => {
-          //ok so now particular device has been updated and we've been given the new device,now we want to update our behaviour subject
-          const currentDevices = this.devicesSubject.value;
-          const deviceIndex = currentDevices.findIndex(
-            (d) => d.id === device.id
-          );
-          if (deviceIndex !== -1) {
-            currentDevices[deviceIndex] = device;
-            this.devicesSubject.next([...currentDevices]);
-          }
+        tap((updatedDevice) => {
+          //update the new device
+          this.devicesSignal.update((current)=>current.map((d)=>d.id===updatedDevice.id?updatedDevice:d))
         })
       );
   }
 
-  //adding a shelf position
-  addShelfPosition(deviceId: number, shelfPositionId: number) {
-    //we wanna do 2 things,push shelfPosition into device and attach device to the shelfPosition
-    //but we need to update everything in subjects so that the whole application is in sync with the backend and we don't have to do additional http requests
-
-    const shelfPositions = this.shelfPositionService.shelfPositionSubject.value;
-    const targetShelfPosition = shelfPositions.find(
-      (sp) => sp.id === shelfPositionId
-    );
-    if (targetShelfPosition) {
-      //when using find operation,there is always a probability that what if the respective entity was not found
-      this.http
-        .post(
-          `${this.apiUrl}/${deviceId}/addShelfPosition/${shelfPositionId}`,
-          {}
-        )
-        .pipe(catchError(this.handleError))
-        .subscribe(() => {
-          const currentDevices = this.devicesSubject.value;
-          const deviceIndex = currentDevices.findIndex(
-            (d) => d.id === deviceId
-          );
-          currentDevices[deviceIndex].shelfPositions?.push(targetShelfPosition); //updating the currentDevice
-          targetShelfPosition.device = currentDevices[deviceIndex]; //updating the shelfPosition
-          //now we have to emit the next functions from both the subjects to carry the updates throughout the application
-          this.devicesSubject.next([...currentDevices]);
-          this.shelfPositionService.shelfPositionSubject.next([
-            ...shelfPositions,
-          ]);
-        });
-    }
-  }
-  
   //deleting a device
   deleteDevice(deviceId: number){
     return this.http.delete(`${this.apiUrl}/delete/${deviceId}`).pipe(
       catchError(this.handleError),
-      tap(() => {
-        // Remove the device from the local BehaviorSubject
-        const currentDevices = this.devicesSubject.value.filter(
-          (d) => d.id !== deviceId
-        );
-        this.devicesSubject.next([...currentDevices]);
+      tap(()=>{
+        //couple of things need to be done here,we need to free all the shelfPositions that have this device as a reference
 
-        // Also, update the shelf positions to remove the reference to the deleted device
-        const shelfPositions =
-          this.shelfPositionService.shelfPositionSubject.value;
+        //first removing this device from devicesSignal
+        this.devicesSignal.update((current)=>current.filter((d)=>d.id!==deviceId))
+        
+        //device must be set to undefined in all respective shelfPositions
+        const shelfPositions=this.shelfPositionService.shelfPositions();
+        shelfPositions.forEach((sp)=>{
+          if(sp.device?.id===deviceId)sp.device=undefined
+        })
 
-        // Iterate through shelf positions and remove the reference to the deleted device
-        shelfPositions.forEach((sp) => {
-          if (sp.device && sp.device.id === deviceId) {
-            sp.device = undefined; // or delete the device property, depending on your model
-          }
-        });
-
-        // Emit the updated shelf positions to the shelf position subject
-        this.shelfPositionService.shelfPositionSubject.next([
-          ...shelfPositions,
-        ]);
+        this.shelfPositionService.shelfPositionsSignal.set([...shelfPositions])
       })
     );
   }
+
+
+  //adding a shelf position
+  addShelfPosition(deviceId: number, shelfPositionId: number):Observable<void>{
+    return this.http.post<void>(`${this.apiUrl}/${deviceId}/addShelfPosition/${shelfPositionId}`,{})
+    .pipe(catchError(this.handleError),
+  tap(()=>{
+    //finding the target shelfPosition 
+    const shelfPositions=this.shelfPositionService.shelfPositions()
+    const targetShelfPosition=shelfPositions.find((sp)=>sp.id===shelfPositionId)
+    
+    //finding the target device
+    const devices=this.devicesSignal()
+    const targetDevice=devices.find((d)=>d.id===deviceId)
+
+
+    if(targetDevice && targetShelfPosition){
+      //now adding shelfPosition to device and updating the signal
+      targetDevice.shelfPositions?.push(targetShelfPosition)
+      //adding device reference to shelfPosition
+      targetShelfPosition.device=targetDevice   
+    }
+
+    //now we have to update both the signals
+    this.devicesSignal.set([...devices])
+    this.shelfPositionService.shelfPositionsSignal.set([...shelfPositions])
+  }))
+  }
   
   //removing a particular shelf position
-  removeShelfPosition(deviceId: number, shelfPositionId: number) {
-    this.http
-      .delete(
-        `${this.apiUrl}/${deviceId}/removeShelfPosition/${shelfPositionId}`
-      )
-      .pipe(catchError(this.handleError))
-      .subscribe(() => {
-        //do changes to device and emit to all other subscribers
-        const allDevices = this.devicesSubject.value;
-        const targetDevice = allDevices.find((d) => d.id === deviceId);
-        if (targetDevice)
-          targetDevice.shelfPositions = targetDevice?.shelfPositions?.filter(
-            (sp) => sp.id !== shelfPositionId
-          );
-        this.devicesSubject.next([...allDevices]);
+  removeShelfPosition(deviceId: number, shelfPositionId: number):Observable<void>{
+    return this.http.delete<void>(`${this.apiUrl}/${deviceId}/removeShelfPosition/${shelfPositionId}`)
+    .pipe(catchError(this.handleError),
+  tap(()=>{
+     const allDevices=this.devicesSignal();
+     const targetDevice=allDevices.find((d)=>d.id===deviceId)
 
-        //do changes to shelfPosition and emit to all other subscibers
-        const allShelfPositions =
-          this.shelfPositionService.shelfPositionSubject.value;
-        const targetShelfPosition = allShelfPositions.find(
-          (sp) => sp.id === shelfPositionId
-        );
-        if (targetShelfPosition) targetShelfPosition.device = undefined;
-        this.shelfPositionService.shelfPositionSubject.next([
-          ...allShelfPositions,
-        ]);
-      });
+     const allShelfPositions=this.shelfPositionService.shelfPositions()
+     const targetShelfPosition=allShelfPositions.find((sp)=>sp.id===shelfPositionId)
+
+     if(targetDevice && targetShelfPosition){
+       targetDevice.shelfPositions=targetDevice.shelfPositions?.filter((sp)=>sp.id!==shelfPositionId)
+       targetShelfPosition.device=undefined
+     }
+
+     this.devicesSignal.set([...allDevices])
+     this.shelfPositionService.shelfPositionsSignal.set([...allShelfPositions])
+
+
+
+  }))
   }
 
   // Error handling method

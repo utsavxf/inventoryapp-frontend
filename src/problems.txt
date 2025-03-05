@@ -1,12 +1,14 @@
 
 QUESTIONS:
-TO HOLD REFERENCE OF THE WHOLE OBJECT OR KEEP JUST ID AND THEN RETRIEVE IT FROM BEHAVIOUR SUBJECT
-LABEL CHECK IN NEO4j, employee-department(engineering) example
-
-
+->TO HOLD REFERENCE OF THE WHOLE OBJECT OR KEEP JUST ID AND THEN RETRIEVE IT FROM BEHAVIOUR SUBJECT
+->LABEL CHECK IN NEO4j, employee-department(engineering) example
+->HOW DOES SIGNALS IMPROVE REACTIVITY SPECIALLY FOR local Properties
+->label check or no label check?
+->idea of exposing 1 signal as read only is being defeated since we are accessing the main signal out of their own service -> make functions inside their own respective services
+->WHY NEO4J ONLY SHOWS NAME AND TYPE PROPERTIES AND NOT OTHERS
 
 FIRST HOW TO AVOID MULTIPLE HTTP REQUEST AND DO STATE MANAGEMENT
-->Rxjs Library,observables,behaviour subjects
+->Rxjs Library,observables,behaviour subjects,signals
 
 CIRCULAR LOOP IN JSON (DEVICE AND SHELF POSITIONS)
 ->used the annotation JsonIdentityInfo
@@ -29,5 +31,5 @@ TO CONCLUDE->deviceSubject act as both observer(listener) as it has to listen to
 CIRCULAR DEPEDENCY ERROR AS DEVICE SERVICE IN SHELF POSITION SERVICE AND VICE AND VERSA
 ->used Injectors to lazily fetch the services
 
-QUESTIONS? WHY NEO4J ONLY SHOWS NAME AND TYPE PROPERTIES AND NOT OTHERS
+
 

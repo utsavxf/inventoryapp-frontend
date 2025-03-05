@@ -1,25 +1,24 @@
 
+<app-loader></app-loader>
+<app-toast></app-toast>
+
 <div class="container mt-4">
   <h2 class="mb-4 text-warning">Shelf Positions</h2>
 
-  <!-- Alert messages -->
-  <div *ngIf="alertMessage" class="alert" [ngClass]="{'alert-success': alertType === 'success', 'alert-danger': alertType === 'error'}" role="alert">
-    {{ alertMessage }}
-  </div>
   
-  <!-- Add Shelf Position Button -->
+  <!-- Add Shelf Position Button (unchanged) -->
   <button class="btn btn-warning mb-4" (click)="toggleAddForm()">
     <i class="fas fa-plus"></i> Add Shelf Position
   </button>
 
   <!-- Add Shelf Position Form -->
-  <div *ngIf="showAddForm" class="card mb-4 bg-light">
+  <div *ngIf="showAddForm()" class="card mb-4 bg-light"> <!-- Signal getter -->
     <div class="card-body">
       <h5 class="card-title text-warning">Add New Shelf Position</h5>
       <form (ngSubmit)="addShelfPosition()" #addPositionForm="ngForm">
         <div class="mb-3">
           <label for="positionName" class="form-label">Position Name</label>
-          <input type="text" class="form-control" id="positionName" [(ngModel)]="newPosition.name" name="name" required #positionName="ngModel">
+          <input type="text" class="form-control" id="positionName" [(ngModel)]="newPosition().name" name="name" required #positionName="ngModel"> <!-- Signal getter -->
           <div *ngIf="positionName.invalid && (positionName.dirty || positionName.touched)" class="text-danger">
             Position name is required.
           </div>
@@ -31,7 +30,7 @@
 
   <!-- Shelf Positions List -->
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    <div class="col" *ngFor="let position of shelfPositions">
+    <div class="col" *ngFor="let position of shelfPositions()"> <!-- Signal getter -->
       <div class="card h-100 shadow-sm">
         <div class="card-body" [routerLink]="['/shelfposition', position.id]" style="cursor: pointer;">
           <h5 class="card-title text-warning">{{ position.name }}</h5>
@@ -60,7 +59,7 @@
       <form (ngSubmit)="updateShelfPosition()" #editPositionForm="ngForm">
         <div class="mb-3">
           <label for="editPositionName" class="form-label">Position Name</label>
-          <input type="text" class="form-control" id="editPositionName" [(ngModel)]="editingShelfPosition.name" name="name" required #editPositionName="ngModel">
+          <input type="text" class="form-control" id="editPositionName" [(ngModel)]="editingShelfPosition().name" name="name" required #editPositionName="ngModel"> <!-- Signal getter -->
           <div *ngIf="editPositionName.invalid && (editPositionName.dirty || editPositionName.touched)" class="text-danger">
             Position name is required.
           </div>
@@ -70,5 +69,3 @@
     </div>
   </ng-template>
 </div>
-
-

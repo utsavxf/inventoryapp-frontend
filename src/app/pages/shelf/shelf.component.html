@@ -1,12 +1,9 @@
-
+<app-loader></app-loader> <!-- Loader component -->
+<app-toast></app-toast> <!-- Toast component -->
 
 <div class="container mt-4">
   <h2 class="mb-4 text-success">Shelves</h2>
   
-  <!-- Alert messages -->
-  <div *ngIf="alertMessage" class="alert" [ngClass]="{'alert-success': alertType === 'success', 'alert-danger': alertType === 'error'}" role="alert">
-    {{ alertMessage }}
-  </div>
 
   <!-- Add Shelf Button -->
   <button class="btn btn-success mb-4" (click)="toggleAddForm()">
@@ -14,20 +11,20 @@
   </button>
 
   <!-- Add Shelf Form -->
-  <div *ngIf="showAddForm" class="card mb-4 bg-light">
+  <div *ngIf="showAddForm()" class="card mb-4 bg-light"> <!-- Signal getter -->
     <div class="card-body">
       <h5 class="card-title text-success">Add New Shelf</h5>
       <form (ngSubmit)="addShelf()" #shelfForm="ngForm">
         <div class="mb-3">
           <label for="shelfName" class="form-label">Shelf Name</label>
-          <input type="text" class="form-control" [(ngModel)]="newShelf.name" id="shelfName" name="name" required #shelfName="ngModel">
+          <input type="text" class="form-control" [(ngModel)]="newShelf().name" id="shelfName" name="name" required #shelfName="ngModel"> <!-- Signal getter -->
           <div *ngIf="shelfName.invalid && (shelfName.dirty || shelfName.touched)" class="text-danger">
             Shelf name is required.
           </div>
         </div>
         <div class="mb-3">
           <label for="shelfType" class="form-label">Shelf Type</label>
-          <input type="text" class="form-control" [(ngModel)]="newShelf.type" id="shelfType" name="type" required #shelfType="ngModel">
+          <input type="text" class="form-control" [(ngModel)]="newShelf().type" id="shelfType" name="type" required #shelfType="ngModel"> <!-- Signal getter -->
           <div *ngIf="shelfType.invalid && (shelfType.dirty || shelfType.touched)" class="text-danger">
             Shelf type is required.
           </div>
@@ -39,7 +36,7 @@
 
   <!-- Shelves List -->
   <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    <div class="col" *ngFor="let shelf of shelves">
+    <div class="col" *ngFor="let shelf of shelves()"> <!-- Signal getter -->
       <div class="card h-100 shadow-sm">
         <div class="card-body" [routerLink]="['/shelf', shelf.id]" style="cursor: pointer;">
           <h5 class="card-title text-success">{{ shelf.name }}</h5>
@@ -49,10 +46,10 @@
             <li class="list-group-item d-flex justify-content-between align-items-center">
               {{ shelf.shelfPosition?.name }}
               @if(shelf.shelfPosition){
-              <button class="btn btn-outline-secondary btn-sm" (click)="removeShelfPosition($event,shelf.id,shelf.shelfPosition.id)">
-                <i class="fas fa-minus"></i> 
-              </button>
-            }
+                <button class="btn btn-outline-secondary btn-sm" (click)="removeShelfPosition($event, shelf.id, shelf.shelfPosition.id)">
+                  <i class="fas fa-minus"></i> 
+                </button>
+              }
             </li>
           </ul>
         </div>
@@ -81,14 +78,14 @@
       <form (ngSubmit)="updateShelf()" #editShelfForm="ngForm">
         <div class="mb-3">
           <label for="editShelfName" class="form-label">Shelf Name</label>
-          <input type="text" class="form-control" id="editShelfName" [(ngModel)]="editingShelf.name" name="name" required #editShelfName="ngModel">
+          <input type="text" class="form-control" id="editShelfName" [(ngModel)]="editingShelf().name" name="name" required #editShelfName="ngModel"> <!-- Signal getter -->
           <div *ngIf="editShelfName.invalid && (editShelfName.dirty || editShelfName.touched)" class="text-danger">
             Shelf name is required.
           </div>
         </div>
         <div class="mb-3">
           <label for="editShelfType" class="form-label">Shelf Type</label>
-          <input type="text" class="form-control" id="editShelfType" [(ngModel)]="editingShelf.type" name="type" required #editShelfType="ngModel">
+          <input type="text" class="form-control" id="editShelfType" [(ngModel)]="editingShelf().type" name="type" required #editShelfType="ngModel"> <!-- Signal getter -->
           <div *ngIf="editShelfType.invalid && (editShelfType.dirty || editShelfType.touched)" class="text-danger">
             Shelf type is required.
           </div>
@@ -108,21 +105,21 @@
       <form (ngSubmit)="assignShelfPosition()" #assignShelfPositionForm="ngForm">
         <div class="mb-3">
           <label for="shelfId" class="form-label">Shelf ID</label>
-          <input type="text" class="form-control" id="shelfId" name="shelf" [value]="assigningShelf.id" readonly>
+          <input type="text" class="form-control" id="shelfId" name="shelf" [value]="assigningShelf().id" readonly> <!-- Signal getter -->
         </div>
-        @if(!assigningShelf.shelfPosition){
-        <div class="mb-3">
-          <label for="shelfPositionId" class="form-label">Shelf Position</label>
-          <select class="form-control" id="shelfPositionId" [(ngModel)]="selectedShelfPositionId" name="shelfPositionId" required>
-            <option value="" disabled>Click to Select a Shelf Position</option>
-            <option *ngFor="let position of availableShelfPositions" [value]="position.id">{{ position.name }}</option>
-          </select>
-          <div *ngIf="!selectedShelfPositionId && (assignShelfPositionForm.submitted || assignShelfPositionForm.touched)" class="text-danger">
-            Shelf Position is required.
+        @if(!assigningShelf().shelfPosition){ <!-- Signal getter -->
+          <div class="mb-3">
+            <label for="shelfPositionId" class="form-label">Shelf Position</label>
+            <select class="form-control" id="shelfPositionId" [(ngModel)]="selectedShelfPositionId" name="shelfPositionId" required> <!-- Signal binding -->
+              <option value="" disabled>Click to Select a Shelf Position</option>
+              <option *ngFor="let position of availableShelfPositions()" [value]="position.id">{{ position.name }}</option> <!-- Signal getter -->
+            </select>
+            <div *ngIf="!selectedShelfPositionId() && (assignShelfPositionForm.submitted || assignShelfPositionForm.touched)" class="text-danger"> <!-- Signal getter -->
+              Shelf Position is required.
+            </div>
           </div>
-        </div>
-        <button type="submit" class="btn btn-info" [disabled]="!assignShelfPositionForm.form.valid">Assign Shelf Position</button>
-      }
+          <button type="submit" class="btn btn-info" [disabled]="!assignShelfPositionForm.form.valid">Assign Shelf Position</button>
+        }
       </form>
     </div>
   </ng-template>
