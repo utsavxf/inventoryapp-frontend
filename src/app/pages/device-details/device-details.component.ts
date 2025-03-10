@@ -3,6 +3,7 @@ import { Device } from '../../../interface/device';
 import { CommonModule } from '@angular/common';
 import { DeviceService } from '../../services/device/device.service';
 import { ActivatedRoute } from '@angular/router';
+import { ToastService } from '../../services/toast/toast.service';
 
 @Component({
   selector: 'app-device-details',
@@ -18,6 +19,7 @@ export class DeviceDetailsComponent {
 
   //we will now fetch the details of the device whose id is passed in the url
   private deviceService=inject(DeviceService)
+  private toastService=inject(ToastService)
   private route=inject(ActivatedRoute)
 
   ngOnInit(): void {
@@ -31,14 +33,19 @@ export class DeviceDetailsComponent {
   }
 
   fetchDevice(id:number): void {
-    this.deviceService.getDeviceById(id).subscribe(
-      (data: Device) => {
+    this.deviceService.getDeviceById(id).subscribe({
+      next:(data: Device) => {
         this.device = data;
+        console.log(this.device)
       },
-      (error) => {
-        console.error('Error fetching device:', error);
+      error:(error) => {
+        this.showAlert(`Failed to fetched the device: ${error.message}`,error)
       }
-    );
+  });
+  }
+
+  showAlert(message: string, type: 'success' | 'error') {
+    this.toastService.show(message, type);
   }
 
 

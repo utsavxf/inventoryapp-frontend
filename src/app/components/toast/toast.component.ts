@@ -22,7 +22,7 @@ export class ToastComponent {
       this.message = toast.message
       this.type = toast.type
       this.show = true
-      setTimeout(() => (this.show = false), 2000)
+      setTimeout(() => (this.show = false), 3000)
     })
   }
 

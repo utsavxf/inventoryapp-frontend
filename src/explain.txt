@@ -87,4 +87,17 @@ FUTURE
 ->signals,pipes and directives
 ->constraints on name,and properties and all that
 ->custom queries for all
-->lifecycle methods
+->lifecycle methods(use other's also)
+->why do we use neo4j repository in the first place,what is it's use
+->what are actually dependencies,that you inject,how do they work internally
+->lazy loading,what are modules in angular,how do they differe from standalone components
+
+
+->try to use every lifecycle methods  ngOninit vs constructor
+->soft delete, active/decommisioned 
+->1 import file for imports
+->spring vs spring boot
+->custom query matching issue DTO 
+->spring boot validator as application is getting verbose and read about how to handle proper validations
+->cross origin waala ek hi file me hoga
+->can use lombok for better readability of code

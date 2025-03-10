@@ -52,7 +52,9 @@ export class DeviceService {
 
   //getting a device by id
   getDeviceById(id: number) {
-    return this.http.get<Device>(`${this.apiUrl}/${id}`);
+    return this.http.get<Device>(`${this.apiUrl}/${id}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
   //updating a deice
@@ -69,7 +71,7 @@ export class DeviceService {
   }
 
   //deleting a device
-  deleteDevice(deviceId: number){
+  deleteDevice(deviceId: number):Observable<any>{
     return this.http.delete(`${this.apiUrl}/delete/${deviceId}`).pipe(
       catchError(this.handleError),
       tap(()=>{
@@ -91,7 +93,7 @@ export class DeviceService {
 
 
   //adding a shelf position
-  addShelfPosition(deviceId: number, shelfPositionId: number):Observable<void>{
+  addShelfPosition(deviceId: number, shelfPositionId: number):Observable<any>{
     return this.http.post<void>(`${this.apiUrl}/${deviceId}/addShelfPosition/${shelfPositionId}`,{})
     .pipe(catchError(this.handleError),
   tap(()=>{
@@ -118,7 +120,7 @@ export class DeviceService {
   }
   
   //removing a particular shelf position
-  removeShelfPosition(deviceId: number, shelfPositionId: number):Observable<void>{
+  removeShelfPosition(deviceId: number, shelfPositionId: number):Observable<any>{
     return this.http.delete<void>(`${this.apiUrl}/${deviceId}/removeShelfPosition/${shelfPositionId}`)
     .pipe(catchError(this.handleError),
   tap(()=>{
@@ -142,24 +144,19 @@ export class DeviceService {
   }
 
   // Error handling method
-  private handleError(error: any): Observable<never> {
+  private handleError(error: any): Observable<never> { //never means it will not return any data,will simply return error which will be catched by component
     let errorMessage: string;
 
-    // Client-side errors (e.g., network failure, bad request construction)
-    if (error.error instanceof ErrorEvent) {
-      errorMessage = `Network or client error: ${error.error.message}`;
-    }
-    // Server-side errors (e.g., 404, 500)
-    else if (error instanceof HttpErrorResponse) {
+    // Server-side errors 
+     if (error instanceof HttpErrorResponse) {
+      console.log(error)
       switch (error.status) {
         case 0:
           errorMessage =
             'No connection to the server. Check your internet or try again later.';
           break;
         case 400:
-          errorMessage = `Bad request: ${
-            error.error?.message || 'Invalid data sent to the server.'
-          }`;
+          errorMessage="Bad Request: Invalid data";
           break;
         case 401:
           errorMessage = 'Unauthorized: Please log in to access this resource.';
@@ -169,8 +166,12 @@ export class DeviceService {
           break;
         case 404:
           errorMessage = `Not found: ${
-            error.error?.message || 'The requested resource doesn’t exist.'
+            error.error
           }`;
+          break;
+        
+        case 409: //Http conflict
+          errorMessage=error.error
           break;
         case 500:
           errorMessage =
@@ -182,18 +183,10 @@ export class DeviceService {
           }`;
       }
     }
-    // Fallback for weird errors
     else {
       errorMessage = 'An unexpected error occurred. Please try again.';
     }
 
-    // Log the full error for debugging
-    console.error('Error in DeviceService:', {
-      message: errorMessage,
-      originalError: error,
-    });
-
-    // Throw the formatted message as an observable error
     return throwError(() => new Error(errorMessage));
   }
 }

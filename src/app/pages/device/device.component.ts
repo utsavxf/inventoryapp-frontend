@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal, type TemplateRef } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, computed, DoCheck, inject, OnChanges, OnInit, signal, SimpleChanges, type TemplateRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DeviceService } from '../../services/device/device.service';
 import type { Device } from '../../../interface/device';
@@ -32,7 +32,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './device.component.html',
   styleUrls: ['./device.component.scss'],
 })
-export class DeviceComponent {
+export class DeviceComponent implements OnInit {
   devices=inject(DeviceService).devices
   shelfPositions=inject(ShelfpositionService).shelfPositions
   availableShelfPositions=computed(()=>this.shelfPositions().filter((sp)=>!sp.device))
@@ -60,17 +60,15 @@ export class DeviceComponent {
   private shelfPositionService = inject(ShelfpositionService);
 
 
-  ngOnInit(): void {
-    this.fetchDevicesFromService();
-    //let's fetch all shelfPositions too from the Service
-    this.shelfPositionService.fetchAllShelfPositions() //again this will only be called when if we are refreshing device pages and shelfPosition subject doesn't have all shelf position
-    .subscribe({
-      next:()=>this.loaderService.hide(),
-      error:()=>this.toastService.show(`Failed to fetch all shelf positions`,"error")
-    })
+  constructor(){
+    console.log("Device constructor called")
   }
 
-  fetchDevicesFromService() {
+  
+
+
+  ngOnInit(): void {
+    console.log("Device ngOninit called")
     this.loaderService.show();
     this.deviceService.fetchAllDevices().subscribe({
       next: () => this.loaderService.hide(),
@@ -79,7 +77,21 @@ export class DeviceComponent {
         this.loaderService.hide();
       },
     });
+
+
+
+    //let's fetch all shelfPositions too from the Service
+    this.shelfPositionService.fetchAllShelfPositions() //again this will only be called when if we are refreshing device pages and shelfPosition subject doesn't have all shelf position
+    .subscribe({
+      next:()=>this.loaderService.hide(),
+      error:()=>this.toastService.show(`Failed to fetch all shelf positions`,"error")
+    })
   }
+
+
+
+
+
 
   toggleAddForm(): void {
     this.showAddForm.update((val)=>!val)
@@ -190,11 +202,6 @@ export class DeviceComponent {
   }
 
   showAlert(message: string, type: 'success' | 'error') {
-    // this.alertMessage = message
-    // this.alertType = type
-    // setTimeout(() => {
-    //   this.alertMessage = null
-    // }, 3000)
     this.toastService.show(message, type);
   }
 }

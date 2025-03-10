@@ -125,25 +125,50 @@ export class ShelfService {
     );
   }
 
-  // Error handling function
-  private handleError(error: any): Observable<never> {
+  // Error handling method
+  private handleError(error: any): Observable<never> { //never means it will not return any data,will simply return error which will be catched by component
     let errorMessage: string;
-    if (error.error instanceof ErrorEvent) { // Client-side error
-      errorMessage = `Network or client error: ${error.error.message}`;
-    } else if (error instanceof HttpErrorResponse) { // Server-side error
+
+    // Server-side errors 
+     if (error instanceof HttpErrorResponse) {
+      console.log(error)
       switch (error.status) {
-        case 0: errorMessage = 'No connection to the server. Check your internet.'; break;
-        case 400: errorMessage = `Bad request: ${error.error?.message || 'Invalid data.'}`; break;
-        case 401: errorMessage = 'Unauthorized: Please log in.'; break;
-        case 403: errorMessage = 'Forbidden: No permission.'; break;
-        case 404: errorMessage = `Not found: ${error.error?.message || 'Shelf missing.'}`; break;
-        case 500: errorMessage = 'Server error: Try again later.'; break;
-        default: errorMessage = `Server error: ${error.status} - ${error.statusText || 'Unknown.'}`;
+        case 0:
+          errorMessage =
+            'No connection to the server. Check your internet or try again later.';
+          break;
+        case 400:
+          errorMessage="Bad Request: Invalid data";
+          break;
+        case 401:
+          errorMessage = 'Unauthorized: Please log in to access this resource.';
+          break;
+        case 403:
+          errorMessage = 'Forbidden: You don’t have permission to do this.';
+          break;
+        case 404:
+          errorMessage = `Not found: ${
+            error.error
+          }`;
+          break;
+        
+        case 409: //Http conflict
+          errorMessage=error.error
+          break;
+        case 500:
+          errorMessage =
+            'Server error: Something broke on our end. Try again later.';
+          break;
+        default:
+          errorMessage = `Unexpected server error: ${error.status} - ${
+            error.statusText || 'Unknown issue.'
+          }`;
       }
-    } else { // Fallback
-      errorMessage = 'Unexpected error. Try again.';
     }
-    console.error('Error in ShelfService:', { message: errorMessage, originalError: error }); // Log error
-    return throwError(() => new Error(errorMessage)); // Throw formatted error
+    else {
+      errorMessage = 'An unexpected error occurred. Please try again.';
+    }
+
+    return throwError(() => new Error(errorMessage));
   }
 }

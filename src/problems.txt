@@ -5,7 +5,7 @@ QUESTIONS:
 ->HOW DOES SIGNALS IMPROVE REACTIVITY SPECIALLY FOR local Properties
 ->label check or no label check?
 ->idea of exposing 1 signal as read only is being defeated since we are accessing the main signal out of their own service -> make functions inside their own respective services
-->WHY NEO4J ONLY SHOWS NAME AND TYPE PROPERTIES AND NOT OTHERS
+->to avoid infinite recursion is JsonIdentityInfo a good way
 
 FIRST HOW TO AVOID MULTIPLE HTTP REQUEST AND DO STATE MANAGEMENT
 ->Rxjs Library,observables,behaviour subjects,signals
@@ -18,18 +18,13 @@ IN HOME PAGE REQUESTS BEING MADE AGAIN AND AGAIN WHEN WE NAVIGATE BACK TO IT AND
 
 ->in the service we can use an additional variable to see if all device/shelves/shelfPositions are fetched or not and use basic if-else logic
 
-BEHAVIOUR SUBJECT AND OBSERVABLES AS  SINGLE SOURCE OF TRUTH
-->SUBJECT OR BEHAVIOUR SUBJECT IS A SPECIAL TYPE OF OBSERVABLE THAT ACTS AS BOTH OBSERVER AND OBSERVABLE
-
-->it listens to the http requests and acts as observer and emits to all other components hence acts as observable
-and we also have a device$ which solely acts as an observable which other components can subscribe to hence next() method can't be called on it to avoid problems that might occur later
-
-TO CONCLUDE->deviceSubject act as both observer(listener) as it has to listen to http requests and update the devices and also as observer(emitter) as it has to notify other components of the updates
-             and device$ is the observable we create to which other components can subscribe to 
-
+WHY NEO4J ONLY SHOWS NAME AND TYPE PROPERTIES AND NOT OTHERS
+->because those are not stored as property ,those are stored as relationships
 
 CIRCULAR DEPEDENCY ERROR AS DEVICE SERVICE IN SHELF POSITION SERVICE AND VICE AND VERSA
 ->used Injectors to lazily fetch the services
+
+
 
 
 
